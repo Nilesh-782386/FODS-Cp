@@ -2,76 +2,49 @@
   "steps": [
     {
       "step": 0,
-      "action": "INSERT_SEQUENTIAL",
+      "action": "PUSH",
       "data": [1],
       "highlighted": [1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
+      "pointers": [0, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Element pushed to stack",
+      "complexity": "O(1)"
     },
     {
       "step": 1,
-      "action": "INSERT_SEQUENTIAL",
+      "action": "PUSH",
       "data": [1, 2],
       "highlighted": [0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
+      "pointers": [1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Element pushed to stack",
+      "complexity": "O(1)"
     },
     {
       "step": 2,
-      "action": "INSERT_SEQUENTIAL",
+      "action": "PUSH",
       "data": [1, 2, 3],
       "highlighted": [0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
+      "pointers": [2, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Element pushed to stack",
+      "complexity": "O(1)"
     },
     {
       "step": 3,
-      "action": "INSERT_SEQUENTIAL",
+      "action": "PUSH",
       "data": [1, 2, 3, 4],
       "highlighted": [0, 0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
+      "pointers": [3, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Element pushed to stack",
+      "complexity": "O(1)"
     },
     {
       "step": 4,
-      "action": "INSERT_SEQUENTIAL",
+      "action": "PUSH",
       "data": [1, 2, 3, 4, 5],
       "highlighted": [0, 0, 0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
-    },
-    {
-      "step": 5,
-      "action": "INSERT_SEQUENTIAL",
-      "data": [1, 2, 3, 4, 5, 6],
-      "highlighted": [0, 0, 0, 0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
-    },
-    {
-      "step": 6,
-      "action": "INSERT_SEQUENTIAL",
-      "data": [1, 2, 3, 4, 5, 6, 7],
-      "highlighted": [0, 0, 0, 0, 0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
-    },
-    {
-      "step": 7,
-      "action": "INSERT_SEQUENTIAL",
-      "data": [1, 2, 3, 4, 5, 6, 7, 8],
-      "highlighted": [0, 0, 0, 0, 0, 0, 0, 1],
-      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Added element sequentially",
-      "complexity": "O(n)"
+      "pointers": [4, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Element pushed to stack",
+      "complexity": "O(1)"
     }
   ],
-  "total_steps": 8
+  "total_steps": 5
 }

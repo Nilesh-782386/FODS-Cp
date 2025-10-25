@@ -1,9 +1,9 @@
 {
-  "structure_type": "linked_list",
-  "operation": "insert_sequential",
-  "is_stack": false,
+  "structure_type": "stack",
+  "operation": "push",
+  "is_stack": true,
   "is_queue": false,
-  "is_linked_list": true,
+  "is_linked_list": false,
   "is_binary_search_tree": false,
   "is_array": false
 }

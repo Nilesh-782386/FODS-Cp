@@ -1,14 +1,13 @@
 import json
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.widgets import Button, Slider
+from matplotlib.widgets import Button, Slider, RadioButtons, CheckButtons
 import numpy as np
 import sys
 import os
+import time
 from matplotlib.patches import FancyBboxPatch, Circle, FancyArrowPatch, Rectangle
-import matplotlib.gridspec as gridspec
-from matplotlib.patches import Polygon
-import matplotlib.patheffects as path_effects
+from matplotlib.colors import LinearSegmentedColormap
 
 class AlgorithmVisualizer:
     def __init__(self):
@@ -21,11 +20,40 @@ class AlgorithmVisualizer:
         self.show_code = True
         self.comparisons = 0
         self.swaps = 0
-        self.animation_frames = 5  # Reduced frames for faster animation
-        self.current_frame = 0
-        self.previous_data = None
-        self.previous_highlighted = None
-        self.last_update_time = 0  # For throttling updates
+        
+        # 🚀 SMART INPUT SYSTEM - New variables
+        self.input_mode = 'manual'
+        self.test_cases = {
+            'sorted': 'Sorted Array',
+            'reverse': 'Reverse Sorted', 
+            'random': 'Random Array',
+            'nearly_sorted': 'Nearly Sorted',
+            'all_equal': 'All Equal Elements',
+            'few_unique': 'Few Unique Elements'
+        }
+        
+        # 🎯 ALGORITHM BATTLE MODE - New variables
+        self.battle_mode = False
+        self.battle_algorithms = []
+        self.battle_steps = []
+        self.current_battle_step = 0
+        
+        # 📊 LIVE ANALYTICS DASHBOARD - New variables
+        self.performance_metrics = {
+            'comparisons': 0,
+            'swaps': 0,
+            'accesses': 0,
+            'start_time': time.time(),
+            'efficiency_score': 0
+        }
+        
+        # 🎮 INTERACTIVE LEARNING MODE - New variables
+        self.learning_mode = False
+        self.current_explanation = ""
+        self.quiz_mode = False
+        self.quiz_question = ""
+        self.quiz_options = []
+        self.quiz_answer = 0
         
         # Load data
         self.load_data()
@@ -33,7 +61,7 @@ class AlgorithmVisualizer:
         # Setup theme
         self.setup_theme()
         
-        # Get screen size and create full-screen layout
+        # Get screen size and set window size
         try:
             import tkinter as tk
             root = tk.Tk()
@@ -41,37 +69,39 @@ class AlgorithmVisualizer:
             screen_height = root.winfo_screenheight()
             root.destroy()
             
-            # Use 95% of screen for full-screen experience
-            fig_width = screen_width * 0.95 / 100
-            fig_height = screen_height * 0.95 / 100
+            fig_width = min(20, screen_width * 0.9 / 100)
+            fig_height = min(12, screen_height * 0.9 / 100)
         except:
-            fig_width, fig_height = 24, 16
+            fig_width, fig_height = 18, 11
         
-        # Create full-screen figure with professional layout
-        self.fig = plt.figure(figsize=(fig_width, fig_height), facecolor='#0a0a0a')
-        self.fig.patch.set_facecolor('#0a0a0a')
+        # Create figure with subplots
+        self.fig = plt.figure(figsize=(fig_width, fig_height))
+        self.fig.patch.set_facecolor(self.colors['bg'])
         
-        # Create a simple, clean grid layout
-        gs = gridspec.GridSpec(10, 12, figure=self.fig, 
-                              hspace=0.2, wspace=0.2,
-                              left=0.03, right=0.97, 
-                              top=0.92, bottom=0.08)
+        # Main visualization area (left side, larger)
+        self.ax_main = plt.subplot2grid((8, 8), (0, 0), colspan=5, rowspan=4)
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
         
-        # Main visualization area (takes most of the screen)
-        self.ax_main = self.fig.add_subplot(gs[1:8, 0:12])
-        self.ax_main.set_facecolor('#1a1a1a')
+        # Side info chart (right top)
+        self.ax_side = plt.subplot2grid((8, 8), (0, 5), colspan=3, rowspan=2)
+        self.ax_side.set_facecolor(self.colors['panel_bg'])
         
-        # Control panel (bottom, compact)
-        self.ax_controls = self.fig.add_subplot(gs[8:10, 0:12])
-        self.ax_controls.set_facecolor('#0a0a0a')
+        # 📊 LIVE ANALYTICS DASHBOARD (right middle)
+        self.ax_stats = plt.subplot2grid((8, 8), (2, 5), colspan=3, rowspan=2)
+        self.ax_stats.set_facecolor(self.colors['panel_bg'])
+        
+        # 🎮 INTERACTIVE LEARNING MODE area
+        self.ax_learn = plt.subplot2grid((8, 8), (4, 0), colspan=8, rowspan=2)
+        self.ax_learn.set_facecolor(self.colors['learn_bg'])
+        
+        # Code display area (bottom)
+        self.ax_code = plt.subplot2grid((8, 8), (6, 0), colspan=5, rowspan=1)
+        self.ax_code.set_facecolor(self.colors['code_bg'])
+        
+        # Control area at very bottom
+        self.ax_controls = plt.subplot2grid((8, 8), (7, 0), colspan=8)
+        self.ax_controls.set_facecolor(self.colors['bg'])
         self.ax_controls.axis('off')
-        
-        # Info overlay (top right, small and unobtrusive)
-        self.ax_info = self.fig.add_subplot(gs[0:1, 8:12])
-        self.ax_info.set_facecolor('#2a2a2a')
-        
-        # Initialize view mode
-        self.show_details = False
         
         # Set window position
         mngr = self.fig.canvas.manager
@@ -89,61 +119,44 @@ class AlgorithmVisualizer:
         self.calculate_statistics()
         self.update_visualization()
         
-        # Auto-start animation with optimized speed control
+        # Auto-start animation
         self.is_playing = True
-        initial_interval = max(16, int(1000 / (self.speed * 2)))  # Much faster default, minimum 16ms (60fps)
         self.ani = animation.FuncAnimation(
-            self.fig, self.animate, interval=initial_interval, 
-            repeat=True, blit=True  # Enable blitting for better performance
+            self.fig, self.animate, interval=1000/self.speed, 
+            repeat=True, blit=False
         )
         
         plt.show()
     
     def setup_theme(self):
-        """Setup professional color themes"""
+        """Setup color themes with enhanced colors for new features"""
         themes = {
             'dark': {
-                'bg': '#0a0a0a',
-                'plot_bg': '#1a1a1a',
-                'panel_bg': '#2a2a2a',
-                'code_bg': '#1a1a1a',
-                'text': '#ffffff',
-                'accent': '#00ff88',
-                'highlight': '#ffd700',
-                'normal': '#4a9eff',
-                'compare': '#ff4757',
-                'found': '#2ed573',
-                'pivot': '#ffa502',
-                'special': '#a55eea',
-                'success': '#26de81',
-                'warning': '#f39c12',
-                'error': '#e74c3c',
-                'info': '#3498db',
-                'border': '#404040',
-                'shadow': '#000000'
+                'bg': '#1a1a1a',
+                'plot_bg': '#2a2a2a',
+                'panel_bg': '#1e1e1e',
+                'code_bg': '#0d0d0d',
+                'learn_bg': '#1a2a3a',
+                'text': 'white',
+                'accent': '#4CAF50',
+                'highlight': '#FFD700',
+                'normal': '#3f51b5',
+                'compare': '#f44336',
+                'found': '#4caf50',
+                'pivot': '#ff9800',
+                'special': '#9c27b0',
+                'battle_1': '#FF6B6B',
+                'battle_2': '#4ECDC4',
+                'battle_3': '#45B7D1',
+                'quiz_correct': '#4CAF50',
+                'quiz_wrong': '#f44336'
             }
         }
         self.colors = themes.get(self.theme, themes['dark'])
         plt.style.use('dark_background')
-        
-        # Set global matplotlib parameters for professional look
-        plt.rcParams.update({
-            'font.size': 10,
-            'font.family': 'sans-serif',
-            'axes.linewidth': 1.5,
-            'axes.edgecolor': self.colors['border'],
-            'xtick.color': self.colors['text'],
-            'ytick.color': self.colors['text'],
-            'text.color': self.colors['text'],
-            'axes.labelcolor': self.colors['text'],
-            'axes.facecolor': self.colors['plot_bg'],
-            'figure.facecolor': self.colors['bg'],
-            'savefig.facecolor': self.colors['bg'],
-            'grid.color': self.colors['border'],
-            'grid.alpha': 0.3
-        })
     
     def load_data(self):
+        """Enhanced data loading with battle mode support"""
         try:
             with open('algorithm_steps.json', 'r') as f:
                 data = json.load(f)
@@ -156,6 +169,9 @@ class AlgorithmVisualizer:
             print(f"✓ Structure: {self.config.get('structure_type', 'unknown')}")
             print(f"✓ Operation: {self.config.get('operation', 'unknown')}")
             
+            # 🚀 SMART INPUT SYSTEM - Analyze input pattern
+            self.analyze_input_pattern()
+            
         except FileNotFoundError as e:
             print(f"✗ Error: Could not find required files - {e}")
             sys.exit(1)
@@ -163,403 +179,528 @@ class AlgorithmVisualizer:
             print(f"✗ Error: Invalid JSON format - {e}")
             sys.exit(1)
     
+    def analyze_input_pattern(self):
+        """🚀 SMART INPUT SYSTEM - Analyze input data pattern"""
+        if not self.steps:
+            return
+            
+        first_step_data = self.steps[0]['data']
+        if not first_step_data:
+            return
+            
+        # Analyze data characteristics
+        sorted_asc = all(first_step_data[i] <= first_step_data[i+1] for i in range(len(first_step_data)-1))
+        sorted_desc = all(first_step_data[i] >= first_step_data[i+1] for i in range(len(first_step_data)-1))
+        all_equal = len(set(first_step_data)) == 1
+        few_unique = len(set(first_step_data)) <= len(first_step_data) // 2
+        
+        # Determine input pattern
+        if all_equal:
+            self.input_mode = 'all_equal'
+        elif sorted_asc:
+            self.input_mode = 'sorted'
+        elif sorted_desc:
+            self.input_mode = 'reverse'
+        elif few_unique:
+            self.input_mode = 'few_unique'
+        else:
+            # Check if nearly sorted
+            inversions = 0
+            for i in range(len(first_step_data)):
+                for j in range(i+1, len(first_step_data)):
+                    if first_step_data[i] > first_step_data[j]:
+                        inversions += 1
+            if inversions <= len(first_step_data):
+                self.input_mode = 'nearly_sorted'
+            else:
+                self.input_mode = 'random'
+        
+        print(f"✓ Input Pattern Detected: {self.test_cases.get(self.input_mode, 'Unknown')}")
+    
     def calculate_statistics(self):
-        """Pre-calculate statistics from all steps"""
+        """Enhanced statistics with performance metrics"""
         self.comparisons = 0
         self.swaps = 0
+        self.performance_metrics['comparisons'] = 0
+        self.performance_metrics['swaps'] = 0
+        self.performance_metrics['accesses'] = 0
         
         for step in self.steps:
             action = step.get('action', '')
-            if 'COMPARE' in action:
+            if 'COMPARE' in action or 'SEARCH' in action:
                 self.comparisons += 1
+                self.performance_metrics['comparisons'] += 1
             if 'SWAP' in action:
                 self.swaps += 1
+                self.performance_metrics['swaps'] += 1
+            self.performance_metrics['accesses'] += 1
+        
+        # Calculate efficiency score
+        total_steps = len(self.steps)
+        if total_steps > 0:
+            optimal_steps = len(self.steps[0]['data']) * np.log2(max(2, len(self.steps[0]['data'])))
+            self.performance_metrics['efficiency_score'] = max(0, min(100, (1 - (total_steps / (optimal_steps * 10))) * 100))
     
     def setup_ui(self):
-        """Setup clean, simple UI with minimal controls"""
+        """Enhanced UI with new feature controls"""
+        plt.subplots_adjust(bottom=0.08, top=0.94, left=0.04, right=0.98, hspace=0.5, wspace=0.4)
         
-        # Simple control buttons with better spacing
-        button_width = 0.1
-        button_height = 0.05
+        # Control buttons
+        button_width = 0.06
+        button_height = 0.03
         button_y = 0.02
-        spacing = 0.12
+        spacing = 0.07
         
-        # Play/Pause button
+        # Play/Pause
         self.ax_play = plt.axes([0.02, button_y, button_width, button_height])
-        self.btn_play = Button(self.ax_play, '▶ PLAY', color=self.colors['success'], 
-                              hovercolor=self.colors['accent'])
-        self.btn_play.label.set_color('white')
-        self.btn_play.label.set_fontsize(11)
-        self.btn_play.label.set_fontweight('bold')
+        self.btn_play = Button(self.ax_play, 'Play', color=self.colors['accent'], 
+                              hovercolor=self.colors['highlight'])
+        self.btn_play.label.set_color(self.colors['text'])
         self.btn_play.on_clicked(self.toggle_play)
         
-        # Reset button
+        # Reset
         self.ax_reset = plt.axes([0.02 + spacing, button_y, button_width, button_height])
-        self.btn_reset = Button(self.ax_reset, '🔄 RESET', color=self.colors['error'], hovercolor='#c0392b')
+        self.btn_reset = Button(self.ax_reset, 'Reset', color='#f44336', hovercolor='#d32f2f')
         self.btn_reset.label.set_color('white')
-        self.btn_reset.label.set_fontsize(11)
-        self.btn_reset.label.set_fontweight('bold')
         self.btn_reset.on_clicked(self.reset_animation)
         
-        # Step Back button
+        # Step Back
         self.ax_step_back = plt.axes([0.02 + spacing*2, button_y, button_width, button_height])
-        self.btn_step_back = Button(self.ax_step_back, '⏮ BACK', color=self.colors['warning'], hovercolor='#e67e22')
+        self.btn_step_back = Button(self.ax_step_back, 'Back', color='#FF9800', hovercolor='#F57C00')
         self.btn_step_back.label.set_color('white')
-        self.btn_step_back.label.set_fontsize(11)
-        self.btn_step_back.label.set_fontweight('bold')
         self.btn_step_back.on_clicked(self.step_back)
         
-        # Step Forward button
+        # Step Forward
         self.ax_step_forward = plt.axes([0.02 + spacing*3, button_y, button_width, button_height])
-        self.btn_step_forward = Button(self.ax_step_forward, 'NEXT ⏭', color=self.colors['info'], hovercolor='#2980b9')
+        self.btn_step_forward = Button(self.ax_step_forward, 'Next', color='#2196F3', hovercolor='#1976D2')
         self.btn_step_forward.label.set_color('white')
-        self.btn_step_forward.label.set_fontsize(11)
-        self.btn_step_forward.label.set_fontweight('bold')
         self.btn_step_forward.on_clicked(self.step_forward)
         
-        # Toggle Details button (simple view switcher)
-        self.ax_details = plt.axes([0.02 + spacing*4, button_y, button_width, button_height])
-        self.btn_details = Button(self.ax_details, '📊 DETAILS', color=self.colors['special'], hovercolor='#8e44ad')
-        self.btn_details.label.set_color('white')
-        self.btn_details.label.set_fontsize(11)
-        self.btn_details.label.set_fontweight('bold')
-        self.btn_details.on_clicked(self.toggle_details)
+        # 🎮 INTERACTIVE LEARNING MODE toggle
+        self.ax_learn_btn = plt.axes([0.02 + spacing*4, button_y, button_width*1.5, button_height])
+        self.btn_learn = Button(self.ax_learn_btn, 'Learn Mode', color='#9C27B0', hovercolor='#7B1FA2')
+        self.btn_learn.label.set_color('white')
+        self.btn_learn.on_clicked(self.toggle_learning_mode)
         
-        # Enhanced speed slider with real-time control (faster range)
-        self.ax_speed = plt.axes([0.65, button_y + 0.01, 0.25, 0.03])
-        self.slider_speed = Slider(self.ax_speed, '⚡ SPEED', 0.5, 10.0, valinit=2.0, 
-                                  facecolor=self.colors['accent'], valfmt='%.1fx',
-                                  edgecolor=self.colors['border'], linewidth=2,
-                                  track_color=self.colors['panel_bg'])
-        
-        # Enhanced slider styling
+        # Speed slider
+        self.ax_speed = plt.axes([0.4, button_y + 0.01, 0.2, 0.02])
+        self.slider_speed = Slider(self.ax_speed, 'Speed', 0.5, 4.0, valinit=1.0, 
+                                  facecolor=self.colors['accent'], valfmt='%.1fx')
         self.slider_speed.label.set_color(self.colors['text'])
-        self.slider_speed.label.set_fontsize(11)
-        self.slider_speed.label.set_fontweight('bold')
-        self.slider_speed.valtext.set_color(self.colors['highlight'])
-        self.slider_speed.valtext.set_fontsize(11)
-        self.slider_speed.valtext.set_fontweight('bold')
-        
-        # Add speed preset buttons
-        self.add_speed_presets()
-        
-        # Enhanced callback with real-time updates
+        self.slider_speed.valtext.set_color(self.colors['text'])
         self.slider_speed.on_changed(self.update_speed)
         
-        # Add keyboard shortcuts for speed control
-        self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
-        
-        # Clean title
+        # Title
         structure_name = self.config.get("structure_type", "").replace("_", " ").title()
         operation_name = self.config.get("operation", "").replace("_", " ").title()
         
-        # Main title (simplified)
-        title_text = f'{structure_name} - {operation_name}'
-        self.fig.suptitle(title_text, fontsize=20, color=self.colors['highlight'], 
-                         y=0.96, fontweight='bold')
+        # 🚀 SMART INPUT SYSTEM - Show input pattern in title
+        input_pattern = self.test_cases.get(self.input_mode, 'Custom')
+        title = f'{structure_name} - {operation_name} | Input: {input_pattern}'
         
-        # Version subtitle (smaller)
-        subtitle_text = 'Enhanced Algorithm Visualizer v5.1'
-        self.fig.text(0.5, 0.91, subtitle_text, fontsize=12, color=self.colors['text'], 
-                     ha='center', alpha=0.7)
+        self.fig.suptitle(title, fontsize=16, color=self.colors['highlight'], y=0.97, fontweight='bold')
     
-    def add_speed_presets(self):
-        """Add speed preset buttons for quick speed adjustment"""
-        # Speed preset buttons
-        preset_width = 0.035
-        preset_height = 0.025
-        preset_y = 0.045
-        preset_spacing = 0.04
-        start_x = 0.91
-        
-        # Speed presets: 1x, 2x, 5x, 10x (much faster defaults)
-        presets = [
-            (1.0, '▶️', '#6bcf7f'),  # Normal
-            (2.0, '⚡', '#ffd93d'),  # Fast
-            (5.0, '🚀', '#ff6b6b'),  # Very Fast
-            (10.0, '💨', '#ff1744')  # Ultra Fast
-        ]
-        
-        self.speed_preset_buttons = []
-        for i, (speed, icon, color) in enumerate(presets):
-            ax_preset = plt.axes([start_x + i * preset_spacing, preset_y, preset_width, preset_height])
-            btn_preset = Button(ax_preset, f'{icon}', color=color, hovercolor='white')
-            btn_preset.label.set_color('white')
-            btn_preset.label.set_fontsize(10)
-            btn_preset.label.set_fontweight('bold')
-            btn_preset.on_clicked(lambda event, s=speed: self.set_speed_preset(s))
-            self.speed_preset_buttons.append(btn_preset)
-    
-    def update_simple_info(self, step):
-        """Simple info overlay - only essential information"""
-        self.ax_info.clear()
-        self.ax_info.set_facecolor('#2a2a2a')
+    def update_side_chart(self, step):
+        """Enhanced side chart with input pattern info"""
+        self.ax_side.clear()
+        self.ax_side.set_facecolor(self.colors['panel_bg'])
         
         complexity = step.get('complexity', 'N/A')
+        action = step.get('action', 'Unknown')
         
-        # Simple progress indicator
+        time_complexity = complexity
+        space_complexity = self.get_space_complexity(action)
+        
+        # Title
+        self.ax_side.text(0.5, 0.95, 'Algorithm Info', ha='center', va='top', 
+                         fontsize=13, fontweight='bold', color=self.colors['highlight'], 
+                         transform=self.ax_side.transAxes)
+        
+        # 🚀 SMART INPUT SYSTEM - Show input pattern
+        input_pattern = self.test_cases.get(self.input_mode, 'Custom')
+        self.ax_side.text(0.5, 0.88, f'Input: {input_pattern}', ha='center', va='top',
+                         fontsize=9, color='cyan', transform=self.ax_side.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.2', facecolor=self.colors['plot_bg'], 
+                                 edgecolor=self.colors['accent'], linewidth=1))
+        
+        # Current step with progress
         progress_pct = int((self.current_step + 1) / len(self.steps) * 100)
+        step_info = f"Step {self.current_step + 1} / {len(self.steps)} ({progress_pct}%)"
+        self.ax_side.text(0.5, 0.80, step_info, ha='center', va='top',
+                         fontsize=10, color='cyan', transform=self.ax_side.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.3', facecolor=self.colors['plot_bg'], 
+                                 edgecolor=self.colors['accent'], linewidth=2))
         
-        # Compact info display with speed indicator
-        speed_icon = self.get_speed_icon(self.speed)
-        info_text = f"Step {self.current_step + 1}/{len(self.steps)} ({progress_pct}%) | {complexity} | {speed_icon}{self.speed:.1f}x"
-        self.ax_info.text(0.5, 0.5, info_text, ha='center', va='center',
-                         fontsize=9, color=self.colors['text'], fontweight='bold',
-                         transform=self.ax_info.transAxes)
+        # Time Complexity
+        self.ax_side.text(0.05, 0.70, 'Time:', ha='left', va='top',
+                         fontsize=10, fontweight='bold', color=self.colors['highlight'], 
+                         transform=self.ax_side.transAxes)
+        self.ax_side.text(0.05, 0.63, time_complexity, ha='left', va='top',
+                         fontsize=11, color=self.colors['text'], transform=self.ax_side.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.3', facecolor='#4CAF50', alpha=0.8))
+        
+        # Space Complexity
+        self.ax_side.text(0.05, 0.53, 'Space:', ha='left', va='top',
+                         fontsize=10, fontweight='bold', color=self.colors['highlight'], 
+                         transform=self.ax_side.transAxes)
+        self.ax_side.text(0.05, 0.46, space_complexity, ha='left', va='top',
+                         fontsize=11, color=self.colors['text'], transform=self.ax_side.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.3', facecolor='#2196F3', alpha=0.8))
+        
+        # Current Action
+        self.ax_side.text(0.05, 0.36, 'Action:', ha='left', va='top',
+                         fontsize=10, fontweight='bold', color=self.colors['highlight'], 
+                         transform=self.ax_side.transAxes)
+        action_wrapped = self.wrap_text(action.replace('_', ' ').title(), 12)
+        self.ax_side.text(0.05, 0.29, action_wrapped, ha='left', va='top',
+                         fontsize=9, color=self.colors['text'], transform=self.ax_side.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.3', facecolor='#FF9800', alpha=0.8))
+        
+        # Progress bar at bottom
+        progress = (self.current_step + 1) / len(self.steps)
+        bar_y = 0.08
+        bar_height = 0.04
+        
+        # Background bar
+        self.ax_side.barh(bar_y, 1, height=bar_height, color='#333333', alpha=0.5,
+                         transform=self.ax_side.transAxes)
+        # Progress bar
+        self.ax_side.barh(bar_y, progress, height=bar_height, color=self.colors['accent'], 
+                         alpha=0.9, transform=self.ax_side.transAxes)
         
         # Remove axes
-        self.ax_info.set_xticks([])
-        self.ax_info.set_yticks([])
-        for spine in self.ax_info.spines.values():
+        self.ax_side.set_xticks([])
+        self.ax_side.set_yticks([])
+        for spine in self.ax_side.spines.values():
             spine.set_visible(False)
     
+    def update_statistics_dashboard(self, step):
+        """📊 ENHANCED LIVE ANALYTICS DASHBOARD"""
+        self.ax_stats.clear()
+        self.ax_stats.set_facecolor(self.colors['panel_bg'])
+        
+        # Title
+        self.ax_stats.text(0.5, 0.95, 'Live Analytics', ha='center', va='top',
+                          fontsize=13, fontweight='bold', color=self.colors['highlight'],
+                          transform=self.ax_stats.transAxes)
+        
+        # Count operations up to current step
+        current_comparisons = 0
+        current_swaps = 0
+        current_accesses = 0
+        
+        for i in range(self.current_step + 1):
+            action = self.steps[i].get('action', '')
+            if 'COMPARE' in action or 'SEARCH' in action:
+                current_comparisons += 1
+            if 'SWAP' in action:
+                current_swaps += 1
+            current_accesses += 1
+        
+        # Update performance metrics
+        self.performance_metrics['comparisons'] = current_comparisons
+        self.performance_metrics['swaps'] = current_swaps
+        self.performance_metrics['accesses'] = current_accesses
+        
+        # Calculate real-time efficiency
+        elapsed_time = time.time() - self.performance_metrics['start_time']
+        if elapsed_time > 0:
+            steps_per_second = (self.current_step + 1) / elapsed_time
+        
+        # Display enhanced statistics
+        y_pos = 0.75
+        spacing = 0.15
+        
+        # Comparisons with visual indicator
+        self.ax_stats.text(0.1, y_pos, f'Comparisons:', ha='left', va='center',
+                          fontsize=9, color=self.colors['text'], 
+                          transform=self.ax_stats.transAxes)
+        self.ax_stats.text(0.85, y_pos, f'{current_comparisons}', ha='right', va='center',
+                          fontsize=11, fontweight='bold', color='#FFD700',
+                          transform=self.ax_stats.transAxes)
+        
+        # Swaps
+        y_pos -= spacing
+        self.ax_stats.text(0.1, y_pos, f'Swaps:', ha='left', va='center',
+                          fontsize=9, color=self.colors['text'],
+                          transform=self.ax_stats.transAxes)
+        self.ax_stats.text(0.85, y_pos, f'{current_swaps}', ha='right', va='center',
+                          fontsize=11, fontweight='bold', color='#4CAF50',
+                          transform=self.ax_stats.transAxes)
+        
+        # Array Accesses
+        y_pos -= spacing
+        self.ax_stats.text(0.1, y_pos, f'Accesses:', ha='left', va='center',
+                          fontsize=9, color=self.colors['text'],
+                          transform=self.ax_stats.transAxes)
+        self.ax_stats.text(0.85, y_pos, f'{current_accesses}', ha='right', va='center',
+                          fontsize=11, fontweight='bold', color='#2196F3',
+                          transform=self.ax_stats.transAxes)
+        
+        # Efficiency Score
+        y_pos -= spacing
+        efficiency = self.performance_metrics['efficiency_score']
+        efficiency_color = '#4CAF50' if efficiency > 70 else '#FF9800' if efficiency > 40 else '#f44336'
+        
+        self.ax_stats.text(0.1, y_pos, f'Efficiency:', ha='left', va='center',
+                          fontsize=9, color=self.colors['text'],
+                          transform=self.ax_stats.transAxes)
+        self.ax_stats.text(0.85, y_pos, f'{efficiency:.1f}%', ha='right', va='center',
+                          fontsize=11, fontweight='bold', color=efficiency_color,
+                          transform=self.ax_stats.transAxes)
+        
+        # Efficiency meter
+        y_pos -= spacing * 0.7
+        self.ax_stats.barh(y_pos, efficiency/100, height=0.03, color=efficiency_color, alpha=0.8,
+                          transform=self.ax_stats.transAxes)
+        
+        # Remove axes
+        self.ax_stats.set_xticks([])
+        self.ax_stats.set_yticks([])
+        for spine in self.ax_stats.spines.values():
+            spine.set_visible(False)
     
-    def get_pseudocode(self, action):
-        """Get pseudocode for specific action"""
-        codes = {
-            'LINEAR_SEARCH': 'for i in range(n):\n    if arr[i] == target:\n        return i',
-            'BINARY_SEARCH': 'while left <= right:\n    mid = (left + right) // 2\n    if arr[mid] == target:\n        return mid',
-            'BUBBLE': 'for i in range(n):\n    for j in range(n-i-1):\n        if arr[j] > arr[j+1]:\n            swap(arr[j], arr[j+1])',
-            'SELECTION': 'for i in range(n):\n    min_idx = i\n    for j in range(i+1, n):\n        if arr[j] < arr[min_idx]:\n            min_idx = j\n    swap(arr[i], arr[min_idx])',
-            'INSERTION': 'for i in range(1, n):\n    key = arr[i]\n    j = i-1\n    while j >= 0 and arr[j] > key:\n        arr[j+1] = arr[j]\n        j -= 1',
-            'QUICK': 'pivot = arr[high]\nwhile i <= j:\n    if arr[i] < pivot:\n        swap(arr[i], arr[j])',
-            'PUSH': 'stack[++top] = value',
-            'POP': 'value = stack[top--]',
-            'ENQUEUE': 'queue[rear++] = value',
-            'DEQUEUE': 'value = queue[front++]',
-            'INSERT_BST': 'if value < node.data:\n    node.left = insert(node.left, value)\nelse:\n    node.right = insert(node.right, value)',
-            'SEARCH_BST': 'if value == node.data:\n    return node\nelif value < node.data:\n    search(node.left, value)\nelse:\n    search(node.right, value)',
+    def update_learning_dashboard(self, step):
+        """🎮 INTERACTIVE LEARNING MODE Dashboard"""
+        self.ax_learn.clear()
+        self.ax_learn.set_facecolor(self.colors['learn_bg'])
+        
+        if not self.learning_mode:
+            self.ax_learn.axis('off')
+            return
+        
+        action = step.get('action', '')
+        description = step.get('description', '')
+        
+        # Title
+        self.ax_learn.text(0.02, 0.85, '🤔 Learning Mode - Why This Step?', 
+                         ha='left', va='top', fontsize=12, fontweight='bold', 
+                         color=self.colors['highlight'], transform=self.ax_learn.transAxes)
+        
+        # Get explanation for current step
+        explanation = self.get_step_explanation(action, description, step)
+        self.current_explanation = explanation
+        
+        # Display explanation with better formatting
+        wrapped_explanation = self.wrap_text(explanation, 80)
+        self.ax_learn.text(0.02, 0.65, wrapped_explanation, ha='left', va='top',
+                         fontsize=10, color=self.colors['text'], transform=self.ax_learn.transAxes,
+                         bbox=dict(boxstyle='round,pad=0.5', facecolor='#2a3a4a', alpha=0.8))
+        
+        # Algorithm Insight
+        insight = self.get_algorithm_insight(action)
+        if insight:
+            self.ax_learn.text(0.02, 0.35, '💡 Algorithm Insight:', ha='left', va='top',
+                             fontsize=10, fontweight='bold', color='#FFD700',
+                             transform=self.ax_learn.transAxes)
+            wrapped_insight = self.wrap_text(insight, 70)
+            self.ax_learn.text(0.05, 0.25, wrapped_insight, ha='left', va='top',
+                             fontsize=9, color='#90CAF9', transform=self.ax_learn.transAxes)
+        
+        # Performance Tip
+        if self.current_step > len(self.steps) * 0.7:  # Show tips near the end
+            tip = self.get_performance_tip()
+            self.ax_learn.text(0.02, 0.15, '🚀 Performance Tip:', ha='left', va='top',
+                             fontsize=10, fontweight='bold', color='#4CAF50',
+                             transform=self.ax_learn.transAxes)
+            wrapped_tip = self.wrap_text(tip, 70)
+            self.ax_learn.text(0.05, 0.05, wrapped_tip, ha='left', va='top',
+                             fontsize=9, color='#A5D6A7', transform=self.ax_learn.transAxes)
+        
+        # Remove axes
+        self.ax_learn.set_xticks([])
+        self.ax_learn.set_yticks([])
+        for spine in self.ax_learn.spines.values():
+            spine.set_edgecolor(self.colors['accent'])
+            spine.set_linewidth(2)
+    
+    def get_step_explanation(self, action, description, step):
+        """Get educational explanation for current step"""
+        explanations = {
+            'COMPARE': "The algorithm is comparing two elements to determine their order. This is fundamental to sorting and searching algorithms.",
+            'SWAP': "The algorithm is swapping two elements to correct their positions. Swapping is expensive but necessary for rearrangement.",
+            'SEARCH': "The algorithm is searching for a specific element. Different search strategies have different time complexities.",
+            'PIVOT': "In Quick Sort, the pivot element helps divide the array into smaller subproblems for efficient sorting.",
+            'MERGE': "Merge Sort combines two sorted subarrays into one sorted array. This is the 'conquer' step of divide-and-conquer.",
+            'DIVIDE': "The algorithm is dividing the problem into smaller subproblems. This is key to efficient algorithms like Merge Sort and Quick Sort.",
+            'INSERT': "Inserting an element at the correct position while maintaining order. Common in Insertion Sort and data structure operations.",
+            'BUBBLE': "Bubble Sort repeatedly compares adjacent elements and swaps them if they're in the wrong order. Simple but inefficient for large datasets.",
+            'SELECTION': "Selection Sort finds the minimum element and places it at the beginning. It maintains two subarrays: sorted and unsorted.",
+            'BINARY_SEARCH': "Binary Search efficiently finds elements in sorted arrays by repeatedly dividing the search interval in half.",
+            'LINEAR_SEARCH': "Linear Search checks each element sequentially. Simple but slow for large datasets - O(n) time complexity.",
+            'PUSH': "Pushing an element onto the stack - adds to the top (LIFO principle).",
+            'POP': "Popping an element from the stack - removes from the top (LIFO principle).",
+            'ENQUEUE': "Enqueuing an element - adds to the rear of the queue (FIFO principle).",
+            'DEQUEUE': "Dequeuing an element - removes from the front of the queue (FIFO principle).",
         }
         
-        for key, code in codes.items():
-            if key in action.upper():
-                return code
+        for key, explanation in explanations.items():
+            if key in action:
+                return explanation
         
-        return 'Processing...'
+        # Default explanation based on action type
+        if 'SORT' in action:
+            return "The algorithm is rearranging elements in a specific order (ascending or descending). Different sorting algorithms have different strategies and performance characteristics."
+        elif 'SEARCH' in action:
+            return "The algorithm is looking for a specific element or condition. Search efficiency depends on data structure and algorithm choice."
+        
+        return "The algorithm is performing an operation to process the data. Each step brings us closer to the final result!"
     
-    def get_space_complexity(self, action):
-        """Get space complexity based on action type"""
-        space_complexities = {
-            'LINEAR_SEARCH': 'O(1)',
-            'BINARY_SEARCH': 'O(1)',
-            'BUBBLE': 'O(1)',
-            'SELECTION': 'O(1)',
-            'INSERTION': 'O(1)',
-            'QUICK': 'O(log n)',
-            'PUSH': 'O(1)',
-            'POP': 'O(1)',
-            'ENQUEUE': 'O(1)',
-            'DEQUEUE': 'O(1)',
-            'INSERT_BST': 'O(h)',
-            'SEARCH_BST': 'O(h)',
-            'DELETE_BST': 'O(h)',
-            'INSERT_BEGINNING': 'O(1)',
-            'INSERT_END': 'O(1)',
-            'SEARCH_LIST': 'O(1)',
+    def get_algorithm_insight(self, action):
+        """Get algorithm-specific insights"""
+        insights = {
+            'QUICK': "Quick Sort's efficiency depends on pivot selection. Good pivots lead to O(n log n), bad pivots to O(n²).",
+            'MERGE': "Merge Sort is stable and always O(n log n), but requires O(n) extra space for merging.",
+            'BUBBLE': "Bubble Sort is good for educational purposes but inefficient for real-world use. Best case O(n) when array is sorted.",
+            'INSERTION': "Insertion Sort is efficient for small datasets and nearly sorted data. It's adaptive and stable.",
+            'SELECTION': "Selection Sort always takes O(n²) time - it doesn't adapt to input order. Good for minimizing swaps.",
+            'BINARY_SEARCH': "Binary Search requires sorted data but is extremely efficient - O(log n) vs O(n) for linear search.",
+            'LINEAR_SEARCH': "Linear Search works on any data but is slow for large datasets. Useful when data is unsorted.",
+            'STACK': "Stack follows LIFO (Last-In-First-Out) principle. Perfect for undo operations, function calls, and depth-first search.",
+            'QUEUE': "Queue follows FIFO (First-In-First-Out) principle. Ideal for task scheduling, breadth-first search, and buffering.",
         }
         
-        for key, value in space_complexities.items():
-            if key in action.upper():
-                return value
-        return 'O(1)'
+        for key, insight in insights.items():
+            if key in action:
+                return insight
+        return ""
     
-    def wrap_text(self, text, max_length):
-        """Wrap text to fit in panels"""
-        if len(text) <= max_length:
-            return text
-        
-        words = text.split()
-        lines = []
-        current_line = []
-        current_length = 0
-        
-        for word in words:
-            if current_length + len(word) + 1 <= max_length:
-                current_line.append(word)
-                current_length += len(word) + 1
-            else:
-                if current_line:
-                    lines.append(' '.join(current_line))
-                current_line = [word]
-                current_length = len(word)
-        
-        if current_line:
-            lines.append(' '.join(current_line))
-        
-        return '\n'.join(lines)
+    def get_performance_tip(self):
+        """Get performance optimization tips"""
+        tips = [
+            "For large datasets, consider O(n log n) algorithms like Quick Sort or Merge Sort.",
+            "For nearly sorted data, Insertion Sort can be very efficient.",
+            "Binary Search is 100x faster than Linear Search for 1 million elements!",
+            "Choosing the right data structure is as important as choosing the right algorithm.",
+            "Cache-friendly algorithms (sequential access) often outperform random access patterns.",
+            "Stack operations (push/pop) are O(1) time complexity - very efficient!",
+            "Queue operations (enqueue/dequeue) are O(1) when implemented properly.",
+        ]
+        return np.random.choice(tips)
     
-    def get_colors(self, highlighted):
-        """Enhanced color scheme"""
-        colors = []
-        for h in highlighted:
-            if h == 0:
-                colors.append(self.colors['normal'])
-            elif h == 1:
-                colors.append(self.colors['compare'])
-            elif h == 2:
-                colors.append(self.colors['found'])
-            elif h == 3:
-                colors.append(self.colors['pivot'])
-            else:
-                colors.append(self.colors['special'])
-        return colors
+    def update_code_display(self, step):
+        """Enhanced code display with learning features"""
+        self.ax_code.clear()
+        self.ax_code.set_facecolor(self.colors['code_bg'])
+        
+        if not self.show_code:
+            self.ax_code.axis('off')
+            return
+        
+        action = step.get('action', '')
+        
+        # Get pseudocode based on action
+        code = self.get_pseudocode(action)
+        
+        # Title
+        self.ax_code.text(0.02, 0.85, 'Pseudocode:', ha='left', va='top',
+                         fontsize=10, fontweight='bold', color=self.colors['highlight'],
+                         transform=self.ax_code.transAxes)
+        
+        # Highlight current line in pseudocode based on action
+        highlighted_line = self.get_highlighted_line(action)
+        
+        # Display code with potential highlighting
+        lines = code.split('\n')
+        y_pos = 0.6
+        line_height = 0.12
+        
+        for i, line in enumerate(lines):
+            color = '#00FF00' if i == highlighted_line else '#CCCCCC'
+            weight = 'bold' if i == highlighted_line else 'normal'
+            self.ax_code.text(0.05, y_pos - i * line_height, line, ha='left', va='top',
+                            fontsize=8, color=color, family='monospace', fontweight=weight,
+                            transform=self.ax_code.transAxes)
+        
+        # Remove axes
+        self.ax_code.set_xticks([])
+        self.ax_code.set_yticks([])
+        for spine in self.ax_code.spines.values():
+            spine.set_edgecolor(self.colors['accent'])
+            spine.set_linewidth(1)
     
-    def interpolate_color(self, color1, color2, factor):
-        """Interpolate between two colors"""
-        # Convert hex colors to RGB
-        def hex_to_rgb(hex_color):
-            hex_color = hex_color.lstrip('#')
-            return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    def get_highlighted_line(self, action):
+        """Determine which line of pseudocode to highlight"""
+        highlight_rules = {
+            'COMPARE': 2,  # Usually the comparison line
+            'SWAP': 3,     # Usually the swap line
+            'SEARCH': 1,   # Search condition line
+            'PIVOT': 0,    # Pivot selection
+            'MERGE': 4,    # Merge operation
+            'DIVIDE': 1,   # Division step
+            'PUSH': 2,     # Push operation
+            'POP': 1,      # Pop operation
+            'ENQUEUE': 2,  # Enqueue operation
+            'DEQUEUE': 1,  # Dequeue operation
+        }
         
-        def rgb_to_hex(rgb):
-            return '#{:02x}{:02x}{:02x}'.format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
-        
-        rgb1 = hex_to_rgb(color1)
-        rgb2 = hex_to_rgb(color2)
-        
-        interpolated = tuple(
-            rgb1[i] + (rgb2[i] - rgb1[i]) * factor
-            for i in range(3)
-        )
-        
-        return rgb_to_hex(interpolated)
+        for key, line in highlight_rules.items():
+            if key in action:
+                return line
+        return 0
     
-    def smooth_transition(self, current_data, current_highlighted, previous_data, previous_highlighted, frame):
-        """Create smooth transition between states (optimized for speed)"""
-        # Skip transitions for ultra-fast speeds
-        if self.speed >= 8.0:
-            return current_data, current_highlighted
-        
-        if previous_data is None or previous_highlighted is None:
-            return current_data, current_highlighted
-        
-        # Normalize frame to 0-1 range
-        progress = frame / self.animation_frames
-        
-        # Skip interpolation for very fast speeds
-        if self.speed >= 5.0 and progress > 0.5:
-            return current_data, current_highlighted
-        
-        # Interpolate data values (simplified for speed)
-        if len(current_data) == len(previous_data):
-            interpolated_data = []
-            for i in range(len(current_data)):
-                value = previous_data[i] + (current_data[i] - previous_data[i]) * progress
-                interpolated_data.append(value)
-        else:
-            interpolated_data = current_data
-        
-        # Interpolate highlight colors (simplified)
-        interpolated_highlighted = []
-        if len(current_highlighted) == len(previous_highlighted):
-            for i in range(len(current_highlighted)):
-                # Simple interpolation for highlights (0 or 1)
-                if previous_highlighted[i] != current_highlighted[i]:
-                    # Transitioning between states
-                    interpolated_highlighted.append(1 if progress > 0.5 else previous_highlighted[i])
-                else:
-                    interpolated_highlighted.append(current_highlighted[i])
-        else:
-            interpolated_highlighted = current_highlighted
-        
-        return interpolated_data, interpolated_highlighted
+    # ==================== PROPER DATA STRUCTURE VISUALIZATIONS ====================
     
     def visualize_array(self, step):
-        """Professional array visualization with enhanced effects"""
+        """Proper array visualization - horizontal layout"""
         self.ax_main.clear()
-        self.ax_main.set_facecolor(self.colors['plot_bg'])
-        
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
         
         if not data:
-            self.ax_main.text(0.5, 0.5, '📊 No data to display', ha='center', va='center', 
-                        transform=self.ax_main.transAxes, fontsize=24, color=self.colors['text'],
-                        fontweight='bold', bbox=dict(boxstyle='round,pad=0.5', 
-                        facecolor=self.colors['panel_bg'], alpha=0.8))
+            self.ax_main.text(0.5, 0.5, 'Array Empty', ha='center', va='center', 
+                        transform=self.ax_main.transAxes, fontsize=16, color=self.colors['text'])
             return
-        
-        # Apply smooth transition if animating
-        if self.current_frame < self.animation_frames and self.previous_data is not None:
-            data, highlighted = self.smooth_transition(
-                data, highlighted, self.previous_data, self.previous_highlighted, self.current_frame
-            )
         
         colors = self.get_colors(highlighted)
         
-        # Create professional bar chart with enhanced styling
-        x_positions = np.arange(len(data))
-        bars = self.ax_main.bar(x_positions, data, color=colors, alpha=0.9, 
-                               edgecolor='white', linewidth=2.5, 
-                               capsize=5, capstyle='round')
+        # Create horizontal array visualization
+        x_pos = np.arange(len(data))
+        bar_height = 0.6
         
-        # Add professional value labels with enhanced styling
-        max_value = max(data) if data else 1
-        for i, (bar, value) in enumerate(zip(bars, data)):
-            height = bar.get_height()
-            if highlighted[i] > 0:
-                # Highlighted elements with glow effect
-                self.ax_main.text(bar.get_x() + bar.get_width()/2., height + max_value * 0.05,
-                            f'{value}', ha='center', va='bottom', fontsize=14, 
-                            fontweight='bold', color='white',
-                            bbox=dict(boxstyle='round,pad=0.4', facecolor=colors[i], 
-                                    alpha=0.9, edgecolor=self.colors['highlight'], linewidth=3),
-                            path_effects=[path_effects.withStroke(linewidth=3, foreground='black')])
-            else:
-                # Normal elements
-                self.ax_main.text(bar.get_x() + bar.get_width()/2., height + max_value * 0.02,
-                            f'{value}', ha='center', va='bottom', fontsize=12, 
-                            color='white', fontweight='bold',
-                            bbox=dict(boxstyle='round,pad=0.2', facecolor='black', 
-                                    alpha=0.7, edgecolor=colors[i], linewidth=1))
+        # Create bars
+        for i, (value, color) in enumerate(zip(data, colors)):
+            # Draw array element
+            rect = Rectangle((i, 0), 0.8, bar_height, 
+                           facecolor=color, alpha=0.85, edgecolor='white', 
+                           linewidth=2, zorder=3)
+            self.ax_main.add_patch(rect)
+            
+            # Add value
+            self.ax_main.text(i + 0.4, bar_height/2, f'{value}', 
+                            ha='center', va='center', fontsize=12, 
+                            fontweight='bold', color='white', zorder=4)
+            
+            # Add index
+            self.ax_main.text(i + 0.4, -0.1, f'[{i}]', 
+                            ha='center', va='top', fontsize=9, 
+                            color=self.colors['text'])
         
-        # Enhanced index labels
-        self.ax_main.set_xticks(x_positions)
-        self.ax_main.set_xticklabels([f'[{i}]' for i in range(len(data))], 
-                                     color=self.colors['text'], fontsize=12, fontweight='bold')
-        
-        # Professional pointer visualization for binary search
+        # Handle pointers for algorithms
         pointers = step.get('pointers', [-1] * 10)
-        pointer_colors = ['cyan', 'yellow', 'magenta', 'orange', 'pink']
-        pointer_labels = ['Left', 'Right', 'Mid', 'Pivot', 'Current']
+        if pointers[0] != -1:  # Left pointer
+            self.ax_main.axvline(x=pointers[0] + 0.4, color='cyan', linestyle='--', 
+                               alpha=0.8, linewidth=2, label='Left')
+        if pointers[1] != -1:  # Right pointer
+            self.ax_main.axvline(x=pointers[1] + 0.4, color='yellow', linestyle='--', 
+                               alpha=0.8, linewidth=2, label='Right')
+        if pointers[2] != -1:  # Mid pointer
+            self.ax_main.axvline(x=pointers[2] + 0.4, color='magenta', linestyle='--', 
+                               alpha=0.8, linewidth=2, label='Mid')
         
-        for i, (ptr, color, label) in enumerate(zip(pointers[:5], pointer_colors, pointer_labels)):
-            if ptr != -1 and ptr < len(data):
-                self.ax_main.axvline(x=ptr, color=color, linestyle='--', 
-                                   alpha=0.9, linewidth=3, label=label)
-                # Add pointer label
-                self.ax_main.text(ptr, max_value * 0.9, label, ha='center', va='bottom',
-                                fontsize=10, color=color, fontweight='bold',
-                                bbox=dict(boxstyle='round,pad=0.2', facecolor='black', 
-                                        alpha=0.8, edgecolor=color, linewidth=1))
+        # Set up the plot
+        self.ax_main.set_xlim(-0.5, len(data) + 0.5)
+        self.ax_main.set_ylim(-0.3, 1.0)
+        self.ax_main.set_aspect('equal')
+        self.ax_main.set_xticks([])
+        self.ax_main.set_yticks([])
         
-        if any(p != -1 for p in pointers[:3]):
-            self.ax_main.legend(loc='upper right', fontsize=11, framealpha=0.9,
-                              facecolor=self.colors['panel_bg'], edgecolor=self.colors['accent'])
-        
-        # Professional title and labels
-        self.ax_main.set_title(step["description"], fontsize=16, color=self.colors['highlight'], 
-                              pad=20, fontweight='bold',
-                              bbox=dict(boxstyle='round,pad=0.5', facecolor=self.colors['panel_bg'], 
-                                      alpha=0.8, edgecolor=self.colors['accent'], linewidth=2))
-        self.ax_main.set_ylabel('Values', color=self.colors['text'], fontsize=14, fontweight='bold')
-        self.ax_main.set_xlabel('Array Index', color=self.colors['text'], fontsize=14, fontweight='bold')
-        
-        # Enhanced grid and styling
-        self.ax_main.tick_params(colors=self.colors['text'], labelsize=12)
-        self.ax_main.grid(True, alpha=0.3, linestyle='-', color=self.colors['border'], linewidth=1)
-        
-        # Set professional limits
-        self.ax_main.set_ylim(0, max_value * 1.2)
-        self.ax_main.set_xlim(-0.5, len(data) - 0.5)
-        
-        # Add subtle border
-        for spine in self.ax_main.spines.values():
-            spine.set_edgecolor(self.colors['accent'])
-            spine.set_linewidth(2)
+        self.ax_main.set_title(f'{step["description"]}', fontsize=11, 
+                              color=self.colors['text'], pad=10, fontweight='bold')
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
     
     def visualize_stack(self, step):
-        """Enhanced stack visualization"""
+        """Proper stack visualization - vertical LIFO structure"""
         self.ax_main.clear()
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
@@ -572,39 +713,63 @@ class AlgorithmVisualizer:
         
         colors = self.get_colors(highlighted)
         
-        # Create vertical stack
-        y_positions = range(len(data))
-        bars = self.ax_main.barh(y_positions, [1] * len(data), color=colors, alpha=0.85, 
-                           edgecolor='white', linewidth=2)
+        # Stack configuration
+        stack_width = 0.8
+        element_height = 0.6
+        base_y = 0.5
         
-        # Add value labels
-        for i, (bar, value) in enumerate(zip(bars, data)):
-            self.ax_main.text(0.5, i, f'{value}', ha='center', va='center', 
-                        fontsize=14, fontweight='bold', color='white',
-                        bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=0.3))
+        # Draw stack base
+        base_rect = Rectangle((0.1, base_y - 0.1), stack_width, 0.1,
+                            facecolor='#666666', edgecolor='white', linewidth=2)
+        self.ax_main.add_patch(base_rect)
+        self.ax_main.text(0.5, base_y - 0.2, 'BASE', ha='center', va='top',
+                         fontsize=10, color='white', fontweight='bold')
+        
+        # Draw stack elements (bottom to top)
+        for i, (value, color) in enumerate(zip(data, colors)):
+            y_pos = base_y + i * element_height
+            
+            # Stack element
+            rect = Rectangle((0.1, y_pos), stack_width, element_height,
+                           facecolor=color, alpha=0.85, edgecolor='white', 
+                           linewidth=2, zorder=3)
+            self.ax_main.add_patch(rect)
+            
+            # Value
+            self.ax_main.text(0.5, y_pos + element_height/2, f'{value}', 
+                            ha='center', va='center', fontsize=12, 
+                            fontweight='bold', color='white', zorder=4)
         
         # TOP pointer
         if data:
-            self.ax_main.annotate('TOP', xy=(1.15, len(data) - 1), xytext=(1.6, len(data) - 1),
-                           arrowprops=dict(arrowstyle='->', color='red', lw=3,
-                                         connectionstyle='arc3,rad=0.3'),
-                           fontsize=14, color='red', fontweight='bold',
-                           bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', 
-                                   alpha=0.8, edgecolor='red', linewidth=2))
+            top_y = base_y + len(data) * element_height
+            self.ax_main.annotate('TOP', 
+                               xy=(0.5, top_y + 0.1), 
+                               xytext=(0.9, top_y + 0.5),
+                               arrowprops=dict(arrowstyle='->', color='red', lw=3),
+                               fontsize=14, color='red', fontweight='bold', ha='center',
+                               bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', 
+                                       alpha=0.9, edgecolor='red', linewidth=2))
         
-        self.ax_main.set_xlim(0, 2.5)
-        self.ax_main.set_ylim(-0.5, len(data) + 0.5)
-        self.ax_main.set_yticks(range(len(data)))
-        self.ax_main.set_yticklabels([f'[{i}]' for i in range(len(data))], 
-                                     color=self.colors['text'])
+        # Stack info
+        self.ax_main.text(0.9, 0.9, f'Size: {len(data)}', 
+                        ha='right', va='top', transform=self.ax_main.transAxes,
+                        fontsize=10, color=self.colors['text'],
+                        bbox=dict(boxstyle='round,pad=0.3', facecolor=self.colors['panel_bg']))
+        
+        # Set up the plot
+        self.ax_main.set_xlim(0, 1.2)
+        self.ax_main.set_ylim(0, base_y + len(data) * element_height + 1.0)
+        self.ax_main.set_aspect('equal')
         self.ax_main.set_xticks([])
+        self.ax_main.set_yticks([])
         
         self.ax_main.set_title(f'{step["description"]}', fontsize=11, 
                               color=self.colors['text'], pad=10, fontweight='bold')
-        self.ax_main.set_ylabel('Stack Positions', color=self.colors['text'])
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
     
     def visualize_queue(self, step):
-        """Enhanced queue visualization"""
+        """Proper queue visualization - horizontal FIFO structure"""
         self.ax_main.clear()
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
@@ -617,43 +782,71 @@ class AlgorithmVisualizer:
         
         colors = self.get_colors(highlighted)
         
-        # Create horizontal queue
-        bars = self.ax_main.bar(range(len(data)), [1] * len(data), color=colors, 
-                               alpha=0.85, edgecolor='white', linewidth=2)
+        # Queue configuration
+        element_width = 0.8
+        element_height = 0.6
+        base_x = 0.5
         
-        # Add value labels
-        for i, (bar, value) in enumerate(zip(bars, data)):
-            self.ax_main.text(i, 0.5, f'{value}', ha='center', va='center',
-                        fontsize=14, fontweight='bold', color='white',
-                        bbox=dict(boxstyle='round,pad=0.4', facecolor='black', alpha=0.3))
+        # Draw queue elements (left to right)
+        for i, (value, color) in enumerate(zip(data, colors)):
+            x_pos = base_x + i * element_width
+            
+            # Queue element
+            rect = Rectangle((x_pos, 0.2), element_width, element_height,
+                           facecolor=color, alpha=0.85, edgecolor='white', 
+                           linewidth=2, zorder=3)
+            self.ax_main.add_patch(rect)
+            
+            # Value
+            self.ax_main.text(x_pos + element_width/2, 0.2 + element_height/2, f'{value}', 
+                            ha='center', va='center', fontsize=12, 
+                            fontweight='bold', color='white', zorder=4)
+            
+            # Position indicator
+            self.ax_main.text(x_pos + element_width/2, 0.1, f'pos {i}', 
+                            ha='center', va='top', fontsize=8, color=self.colors['text'])
         
         # FRONT and REAR pointers
         if data:
-            self.ax_main.annotate('FRONT', xy=(0, 1.25), xytext=(0, 1.6),
-                           arrowprops=dict(arrowstyle='->', color='red', lw=3),
-                           fontsize=13, color='red', fontweight='bold', ha='center',
-                           bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', 
-                                   alpha=0.8, edgecolor='red', linewidth=2))
+            # FRONT pointer (first element)
+            front_x = base_x + element_width/2
+            self.ax_main.annotate('FRONT', 
+                               xy=(front_x, 0.85), 
+                               xytext=(front_x, 1.1),
+                               arrowprops=dict(arrowstyle='->', color='red', lw=3),
+                               fontsize=12, color='red', fontweight='bold', ha='center',
+                               bbox=dict(boxstyle='round,pad=0.3', facecolor='yellow', 
+                                       alpha=0.9, edgecolor='red', linewidth=2))
             
-            self.ax_main.annotate('REAR', xy=(len(data) - 1, 1.25), xytext=(len(data) - 1, 1.6),
-                           arrowprops=dict(arrowstyle='->', color='green', lw=3),
-                           fontsize=13, color='green', fontweight='bold', ha='center',
-                           bbox=dict(boxstyle='round,pad=0.4', facecolor='lightgreen', 
-                                   alpha=0.8, edgecolor='green', linewidth=2))
+            # REAR pointer (last element)
+            rear_x = base_x + (len(data) - 1) * element_width + element_width/2
+            self.ax_main.annotate('REAR', 
+                               xy=(rear_x, 0.85), 
+                               xytext=(rear_x, 1.1),
+                               arrowprops=dict(arrowstyle='->', color='green', lw=3),
+                               fontsize=12, color='green', fontweight='bold', ha='center',
+                               bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgreen', 
+                                       alpha=0.9, edgecolor='green', linewidth=2))
         
-        self.ax_main.set_xlim(-0.5, len(data) + 0.5)
-        self.ax_main.set_ylim(0, 2.2)
-        self.ax_main.set_xticks(range(len(data)))
-        self.ax_main.set_xticklabels([f'[{i}]' for i in range(len(data))], 
-                                     color=self.colors['text'])
+        # Queue info
+        self.ax_main.text(0.95, 0.95, f'Size: {len(data)}', 
+                        ha='right', va='top', transform=self.ax_main.transAxes,
+                        fontsize=10, color=self.colors['text'],
+                        bbox=dict(boxstyle='round,pad=0.3', facecolor=self.colors['panel_bg']))
+        
+        # Set up the plot
+        self.ax_main.set_xlim(0, base_x + len(data) * element_width + 0.5)
+        self.ax_main.set_ylim(0, 1.3)
+        self.ax_main.set_aspect('equal')
+        self.ax_main.set_xticks([])
         self.ax_main.set_yticks([])
         
         self.ax_main.set_title(f'{step["description"]}', fontsize=11, 
                               color=self.colors['text'], pad=10, fontweight='bold')
-        self.ax_main.set_xlabel('Queue Positions', color=self.colors['text'])
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
     
     def visualize_linked_list(self, step):
-        """Enhanced linked list visualization"""
+        """Proper linked list visualization - nodes with pointers"""
         self.ax_main.clear()
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
@@ -666,70 +859,70 @@ class AlgorithmVisualizer:
         
         colors = self.get_colors(highlighted)
         
-        # Enhanced node visualization
-        node_width = 0.7
-        node_height = 0.35
+        # Node configuration
+        node_width = 0.6
+        node_height = 0.4
+        pointer_length = 0.3
         y_center = 0.5
         
+        # Draw linked list nodes
         for i, (value, color) in enumerate(zip(data, colors)):
-            x_center = i * 1.3
+            x_center = 0.5 + i * (node_width + pointer_length)
             
-            # Draw fancy node box
-            fancy_box = FancyBboxPatch((x_center - node_width/2, y_center - node_height/2),
-                                      node_width, node_height, 
-                                      boxstyle="round,pad=0.05", 
-                                      facecolor=color, edgecolor='white', 
-                                      linewidth=2.5, alpha=0.9)
-            self.ax_main.add_patch(fancy_box)
+            # Node rectangle
+            rect = Rectangle((x_center - node_width/2, y_center - node_height/2),
+                           node_width, node_height,
+                           facecolor=color, alpha=0.85, edgecolor='white', 
+                           linewidth=2, zorder=3)
+            self.ax_main.add_patch(rect)
             
-            # Add value text with shadow effect
-            self.ax_main.text(x_center + 0.02, y_center - 0.02, f'{value}', 
-                            ha='center', va='center',
-                            fontsize=13, fontweight='bold', color='gray', alpha=0.5)
-            self.ax_main.text(x_center, y_center, f'{value}', ha='center', va='center',
-                            fontsize=13, fontweight='bold', color='white')
+            # Value
+            self.ax_main.text(x_center, y_center, f'{value}', 
+                            ha='center', va='center', fontsize=11, 
+                            fontweight='bold', color='white', zorder=4)
             
-            # Draw fancy arrow to next node
+            # Next pointer arrow (except for last node)
             if i < len(data) - 1:
-                arrow_start_x = x_center + node_width/2
-                arrow_end_x = (i + 1) * 1.3 - node_width/2
+                arrow_start = (x_center + node_width/2, y_center)
+                arrow_end = (x_center + node_width/2 + pointer_length, y_center)
                 
-                arrow = FancyArrowPatch((arrow_start_x, y_center), 
-                                       (arrow_end_x, y_center),
-                                       arrowstyle='->,head_width=0.4,head_length=0.4',
-                                       color='cyan', lw=2.5, alpha=0.8,
-                                       connectionstyle='arc3,rad=0.1')
+                arrow = FancyArrowPatch(arrow_start, arrow_end,
+                                      arrowstyle='->', color='cyan', 
+                                      linewidth=2, zorder=2)
                 self.ax_main.add_patch(arrow)
         
-        # Enhanced NULL pointer
+        # HEAD pointer
         if data:
-            last_x = (len(data) - 1) * 1.3 + node_width/2 + 0.2
-            self.ax_main.text(last_x, y_center, 'NULL', ha='left', va='center',
-                        fontsize=11, color='red', fontweight='bold',
-                        bbox=dict(boxstyle='round,pad=0.3', facecolor='black', 
-                                alpha=0.7, edgecolor='red', linewidth=2))
+            head_x = 0.5 - node_width/2
+            self.ax_main.annotate('HEAD', 
+                               xy=(head_x, y_center + node_height/2 + 0.1), 
+                               xytext=(head_x - 0.3, y_center + node_height/2 + 0.4),
+                               arrowprops=dict(arrowstyle='->', color='red', lw=2),
+                               fontsize=11, color='red', fontweight='bold', ha='center')
         
-        # Enhanced HEAD pointer
+        # NULL pointer for last node
         if data:
-            self.ax_main.annotate('HEAD', xy=(-node_width/2 - 0.1, y_center), 
-                           xytext=(-1.0, y_center + 0.4),
-                           arrowprops=dict(arrowstyle='->', color='red', lw=3,
-                                         connectionstyle='arc3,rad=0.3'),
-                           fontsize=13, color='red', fontweight='bold',
-                           bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', 
-                                   alpha=0.9, edgecolor='red', linewidth=2))
+            last_x = 0.5 + (len(data) - 1) * (node_width + pointer_length) + node_width/2
+            self.ax_main.text(last_x + 0.2, y_center, 'NULL', 
+                            ha='left', va='center', fontsize=10, 
+                            color='red', fontweight='bold',
+                            bbox=dict(boxstyle='round,pad=0.2', facecolor='black', 
+                                    alpha=0.7, edgecolor='red', linewidth=1))
         
-        self.ax_main.set_xlim(-1.5, len(data) * 1.3 + 0.8)
-        self.ax_main.set_ylim(0.1, 0.9)
+        # Set up the plot
+        total_width = 0.5 + len(data) * (node_width + pointer_length) + 0.5
+        self.ax_main.set_xlim(0, total_width)
+        self.ax_main.set_ylim(0, 1)
         self.ax_main.set_aspect('equal')
         self.ax_main.set_xticks([])
         self.ax_main.set_yticks([])
         
         self.ax_main.set_title(f'{step["description"]}', fontsize=11, 
                               color=self.colors['text'], pad=10, fontweight='bold')
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
     
     def visualize_binary_search_tree(self, step):
-        """Enhanced BST visualization with proper tree structure"""
+        """Proper BST visualization - tree structure"""
         self.ax_main.clear()
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
@@ -742,51 +935,45 @@ class AlgorithmVisualizer:
         
         colors = self.get_colors(highlighted)
         
-        # Build actual BST structure
-        bst_root = self.build_bst_from_array(data)
-        if not bst_root:
-            return
+        # Calculate tree positions
+        positions = self.calculate_tree_positions(data)
         
-        # Calculate proper tree positions
-        positions = {}
-        self.calculate_tree_layout(bst_root, positions)
-        
-        # Draw tree connections (parent-child relationships)
-        self.draw_bst_connections(bst_root, positions)
+        # Draw connections first
+        for i in range(1, len(data)):
+            if i < len(positions):
+                parent_idx = (i - 1) // 2
+                if parent_idx < len(positions):
+                    # Draw line from parent to child
+                    x_values = [positions[parent_idx][0], positions[i][0]]
+                    y_values = [positions[parent_idx][1], positions[i][1]]
+                    self.ax_main.plot(x_values, y_values, 'cyan', linewidth=2, alpha=0.6, zorder=1)
         
         # Draw nodes
         for i, (value, color) in enumerate(zip(data, colors)):
-            if value in positions:
-                x, y = positions[value]
+            if i < len(positions):
+                x, y = positions[i]
                 
-                # Draw fancy node circle with glow effect
-                if highlighted[i] > 0:
-                    # Outer glow
-                    outer_circle = Circle((x, y), 0.5, facecolor=color, 
-                                         edgecolor='yellow', linewidth=3, alpha=0.4)
-                    self.ax_main.add_patch(outer_circle)
-                
-                # Main circle
-                circle = Circle((x, y), 0.4, facecolor=color, edgecolor='white', 
-                              linewidth=2.5, alpha=0.9)
+                # Node circle
+                circle = Circle((x, y), 0.15, facecolor=color, alpha=0.85, 
+                              edgecolor='white', linewidth=2, zorder=3)
                 self.ax_main.add_patch(circle)
                 
-                # Add value with shadow
-                self.ax_main.text(x + 0.02, y - 0.02, f'{value}', ha='center', va='center',
-                            fontsize=11, fontweight='bold', color='gray', alpha=0.5)
+                # Value
                 self.ax_main.text(x, y, f'{value}', ha='center', va='center',
-                            fontsize=11, fontweight='bold', color='white')
+                                fontsize=10, fontweight='bold', color='white', zorder=4)
         
-        # Set limits with better margins
+        # Set up the plot
         if positions:
-            x_coords = [pos[0] for pos in positions.values()]
-            y_coords = [pos[1] for pos in positions.values()]
-            if x_coords and y_coords:
-                x_margin = max(1.5, (max(x_coords) - min(x_coords)) * 0.15)
-                y_margin = max(1.0, (max(y_coords) - min(y_coords)) * 0.15)
-                
-                self.ax_main.set_xlim(min(x_coords) - x_margin, max(x_coords) + x_margin)
-                self.ax_main.set_ylim(min(y_coords) - y_margin, max(y_coords) + y_margin)
+            x_coords = [pos[0] for pos in positions]
+            y_coords = [pos[1] for pos in positions]
+            x_margin = (max(x_coords) - min(x_coords)) * 0.2 + 0.5
+            y_margin = (max(y_coords) - min(y_coords)) * 0.2 + 0.5
+            
+            self.ax_main.set_xlim(min(x_coords) - x_margin, max(x_coords) + x_margin)
+            self.ax_main.set_ylim(min(y_coords) - y_margin, max(y_coords) + y_margin)
+        else:
+            self.ax_main.set_xlim(-1, 1)
+            self.ax_main.set_ylim(-1, 1)
         
         self.ax_main.set_aspect('equal')
         self.ax_main.set_xticks([])
@@ -794,93 +981,230 @@ class AlgorithmVisualizer:
         
         self.ax_main.set_title(f'{step["description"]}', fontsize=11, 
                               color=self.colors['text'], pad=10, fontweight='bold')
+        self.ax_main.set_facecolor(self.colors['plot_bg'])
     
-    def draw_bst_connections(self, root, positions):
-        """Draw parent-child connections in BST"""
-        if root is None:
-            return
-        
-        root_x, root_y = positions[root['value']]
-        
-        # Draw connection to left child
-        if root['left'] is not None and root['left']['value'] in positions:
-            left_x, left_y = positions[root['left']['value']]
-            arrow = FancyArrowPatch((root_x, root_y - 0.35), (left_x, left_y + 0.35),
-                                  arrowstyle='-', color='cyan', lw=2, alpha=0.7,
-                                  connectionstyle='arc3,rad=0.1')
-            self.ax_main.add_patch(arrow)
-            self.draw_bst_connections(root['left'], positions)
-        
-        # Draw connection to right child
-        if root['right'] is not None and root['right']['value'] in positions:
-            right_x, right_y = positions[root['right']['value']]
-            arrow = FancyArrowPatch((root_x, root_y - 0.35), (right_x, right_y + 0.35),
-                                  arrowstyle='-', color='cyan', lw=2, alpha=0.7,
-                                  connectionstyle='arc3,rad=-0.1')
-            self.ax_main.add_patch(arrow)
-            self.draw_bst_connections(root['right'], positions)
-    
-    def calculate_bst_positions_enhanced(self, data):
-        """Proper BST layout algorithm using Reingold-Tilford approach"""
+    def calculate_tree_positions(self, data):
+        """Calculate positions for BST nodes"""
         if not data:
             return []
         
-        # Create a proper BST structure from the data
-        bst_nodes = self.build_bst_from_array(data)
-        if not bst_nodes:
-            return []
+        positions = []
+        n = len(data)
         
-        # Calculate positions using proper tree layout
-        positions = {}
-        self.calculate_tree_layout(bst_nodes, positions)
+        for i in range(n):
+            level = 0
+            temp = i + 1
+            while temp > 1:
+                temp //= 2
+                level += 1
+            
+            # Calculate horizontal position
+            level_start = 2 ** level - 1
+            pos_in_level = i - level_start
+            level_width = 2 ** (level + 1)
+            
+            x = (pos_in_level + 1) * (1.0 / (2 ** level + 1)) - 0.5
+            x = x * (2 ** level)  # Scale by level
+            
+            # Vertical position (root at top)
+            y = -level * 0.3
+            
+            positions.append((x, y))
         
-        # Convert to list format expected by visualization
-        result_positions = []
-        for i, value in enumerate(data):
-            if value in positions:
-                result_positions.append(positions[value])
+        return positions
+    
+    def get_colors(self, highlighted):
+        """Enhanced color mapping with smooth transitions"""
+        colors = []
+        for h in highlighted:
+            if h == 1:  # Comparing
+                colors.append(self.colors['compare'])
+            elif h == 2:  # Found/target
+                colors.append(self.colors['found'])
+            elif h == 3:  # Pivot
+                colors.append(self.colors['pivot'])
+            elif h == 4:  # Special
+                colors.append(self.colors['special'])
+            else:  # Normal
+                colors.append(self.colors['normal'])
+        return colors
+    
+    def get_space_complexity(self, action):
+        """Get space complexity for current operation"""
+        complexities = {
+            'BUBBLE_SORT': 'O(1)',
+            'SELECTION_SORT': 'O(1)',
+            'INSERTION_SORT': 'O(1)',
+            'MERGE_SORT': 'O(n)',
+            'QUICK_SORT': 'O(log n)',
+            'LINEAR_SEARCH': 'O(1)',
+            'BINARY_SEARCH': 'O(1)',
+            'PUSH': 'O(1)',
+            'POP': 'O(1)',
+            'ENQUEUE': 'O(1)',
+            'DEQUEUE': 'O(1)',
+        }
+        
+        for key, complexity in complexities.items():
+            if key in action:
+                return complexity
+        return 'O(1)'
+    
+    def wrap_text(self, text, max_chars):
+        """Wrap text to specified character limit"""
+        words = text.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            if len(' '.join(current_line + [word])) <= max_chars:
+                current_line.append(word)
             else:
-                # Fallback for values not in BST
-                result_positions.append((i * 2, 0))
+                lines.append(' '.join(current_line))
+                current_line = [word]
         
-        return result_positions
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return '\n'.join(lines)
     
-    def build_bst_from_array(self, data):
-        """Build actual BST structure from array data"""
-        if not data:
-            return None
+    def get_pseudocode(self, action):
+        """Get pseudocode for current algorithm step"""
+        pseudocodes = {
+            # Sorting algorithms
+            'BUBBLE': """function bubbleSort(arr):
+    for i from 0 to n-1:
+        for j from 0 to n-i-1:
+            if arr[j] > arr[j+1]:
+                swap arr[j] and arr[j+1]""",
+            
+            'QUICK': """function quickSort(arr, low, high):
+    if low < high:
+        pivot = partition(arr, low, high)
+        quickSort(arr, low, pivot-1)
+        quickSort(arr, pivot+1, high)""",
+            
+            'MERGE': """function mergeSort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = mergeSort(arr[:mid])
+    right = mergeSort(arr[mid:])
+    return merge(left, right)""",
+            
+            'SELECTION': """function selectionSort(arr):
+    for i from 0 to n-1:
+        min_idx = i
+        for j from i+1 to n:
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        swap arr[i] and arr[min_idx]""",
+            
+            'INSERTION': """function insertionSort(arr):
+    for i from 1 to n-1:
+        key = arr[i]
+        j = i-1
+        while j >= 0 and arr[j] > key:
+            arr[j+1] = arr[j]
+            j = j-1
+        arr[j+1] = key""",
+            
+            # Searching algorithms
+            'BINARY_SEARCH': """function binarySearch(arr, target):
+    low = 0, high = n-1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        else if arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1""",
+            
+            'LINEAR_SEARCH': """function linearSearch(arr, target):
+    for i from 0 to n-1:
+        if arr[i] == target:
+            return i
+    return -1""",
+            
+            # Stack operations
+            'PUSH': """function push(stack, element):
+    if stack.isFull():
+        return "Overflow"
+    stack.top = stack.top + 1
+    stack.arr[stack.top] = element""",
+            
+            'POP': """function pop(stack):
+    if stack.isEmpty():
+        return "Underflow"
+    element = stack.arr[stack.top]
+    stack.top = stack.top - 1
+    return element""",
+            
+            # Queue operations
+            'ENQUEUE': """function enqueue(queue, element):
+    if queue.isFull():
+        return "Overflow"
+    queue.rear = queue.rear + 1
+    queue.arr[queue.rear] = element""",
+            
+            'DEQUEUE': """function dequeue(queue):
+    if queue.isEmpty():
+        return "Underflow"
+    element = queue.arr[queue.front]
+    queue.front = queue.front + 1
+    return element"""
+        }
         
-        root = None
-        for value in data:
-            root = self.insert_into_bst(root, value)
-        return root
+        for key, code in pseudocodes.items():
+            if key in action:
+                return code
+        
+        # Default pseudocode
+        return """function algorithm(data):
+    // Algorithm pseudocode
+    for each element in data:
+        perform operation
+    return result"""
     
-    def insert_into_bst(self, root, value):
-        """Insert value into BST and return new root"""
-        if root is None:
-            return {'value': value, 'left': None, 'right': None}
-        
-        if value < root['value']:
-            root['left'] = self.insert_into_bst(root['left'], value)
-        elif value > root['value']:
-            root['right'] = self.insert_into_bst(root['right'], value)
-        
-        return root
+    # 🎮 INTERACTIVE LEARNING MODE methods
+    def toggle_learning_mode(self, event=None):
+        """Toggle interactive learning mode"""
+        self.learning_mode = not self.learning_mode
+        print(f"🎮 Learning Mode: {'ON' if self.learning_mode else 'OFF'}")
+        self.update_visualization()
     
-    def calculate_tree_layout(self, root, positions, x_offset=0, y_offset=0, level=0):
-        """Calculate proper tree layout using modified Reingold-Tilford algorithm"""
-        if root is None:
-            return x_offset
-        
-        # Recursively layout left and right subtrees
-        left_x = self.calculate_tree_layout(root['left'], positions, x_offset, y_offset + 1, level + 1)
-        current_x = left_x + 2  # Add spacing
-        right_x = self.calculate_tree_layout(root['right'], positions, current_x + 2, y_offset + 1, level + 1)
-        
-        # Position current node
-        positions[root['value']] = (current_x, -level)  # Negative for top-down display
-        
-        return right_x
+    # 🚀 SMART INPUT SYSTEM methods
+    def generate_test_case(self, case_type, size=10):
+        """Generate different test cases for algorithm testing"""
+        if case_type == 'sorted':
+            return list(range(1, size + 1))
+        elif case_type == 'reverse':
+            return list(range(size, 0, -1))
+        elif case_type == 'random':
+            return np.random.randint(1, 100, size).tolist()
+        elif case_type == 'nearly_sorted':
+            arr = list(range(1, size + 1))
+            # Swap a few elements to make it nearly sorted
+            for _ in range(size // 10):
+                i, j = np.random.randint(0, size, 2)
+                arr[i], arr[j] = arr[j], arr[i]
+            return arr
+        elif case_type == 'all_equal':
+            return [5] * size
+        elif case_type == 'few_unique':
+            unique_values = [1, 2, 3, 5, 8]
+            return [np.random.choice(unique_values) for _ in range(size)]
+        else:
+            return list(range(1, size + 1))
+    
+    # 🎯 ALGORITHM BATTLE MODE methods (stub for future implementation)
+    def start_algorithm_battle(self, algorithms):
+        """Start battle mode with multiple algorithms"""
+        self.battle_mode = True
+        self.battle_algorithms = algorithms
+        print(f"🎯 Algorithm Battle Started: {', '.join(algorithms)}")
     
     def update_visualization(self):
         """Update all visualization components"""
@@ -889,22 +1213,22 @@ class AlgorithmVisualizer:
         
         step = self.steps[self.current_step]
         
-        # Update info panel (simple by default)
-        self.update_simple_info(step)
-        
-        # Show details only if enabled
-        if self.show_details:
-            # Create detailed panels on demand
-            self.show_detailed_view(step)
+        # Update all panels
+        self.update_side_chart(step)
+        self.update_statistics_dashboard(step)
+        self.update_learning_dashboard(step)
+        self.update_code_display(step)
         
         # Choose visualization based on structure type
-        if self.config.get('is_stack', False):
+        structure_type = self.config.get('structure_type', 'array')
+        
+        if structure_type == 'stack' or self.config.get('is_stack', False):
             self.visualize_stack(step)
-        elif self.config.get('is_queue', False):
+        elif structure_type == 'queue' or self.config.get('is_queue', False):
             self.visualize_queue(step)
-        elif self.config.get('is_linked_list', False):
+        elif structure_type == 'linked_list' or self.config.get('is_linked_list', False):
             self.visualize_linked_list(step)
-        elif self.config.get('is_binary_search_tree', False):
+        elif structure_type == 'binary_search_tree' or self.config.get('is_binary_search_tree', False):
             self.visualize_binary_search_tree(step)
         else:  # Default to array visualization
             self.visualize_array(step)
@@ -912,33 +1236,8 @@ class AlgorithmVisualizer:
         plt.draw()
     
     def animate(self, frame):
-        """Optimized animation function with faster transitions"""
-        import time
-        
-        # Throttle updates for better performance
-        current_time = time.time()
-        if current_time - self.last_update_time < 0.016:  # ~60fps max
-            return []
-        self.last_update_time = current_time
-        
-        # Reduced transition frames for faster animation
-        if self.current_frame < self.animation_frames and self.previous_data is not None:
-            self.current_frame += 1
-            self.update_visualization()
-            return []
-        
-        # Move to next step
         if self.is_playing and self.current_step < len(self.steps) - 1:
-            # Store current data for smooth transition (only if needed)
-            if self.current_step < len(self.steps) and self.speed < 5.0:  # Skip transitions for very fast speeds
-                current_step_data = self.steps[self.current_step]
-                self.previous_data = current_step_data['data'].copy()
-                self.previous_highlighted = current_step_data.get('highlighted', [0] * len(current_step_data['data'])).copy()
-            else:
-                self.previous_data = None  # Skip transitions for ultra-fast speeds
-            
             self.current_step += 1
-            self.current_frame = 0  # Reset frame counter for new step
             self.update_visualization()
         elif self.current_step >= len(self.steps) - 1:
             self.is_playing = False
@@ -958,10 +1257,7 @@ class AlgorithmVisualizer:
     
     def reset_animation(self, event):
         self.current_step = 0
-        self.current_frame = 0
         self.is_playing = False
-        self.previous_data = None
-        self.previous_highlighted = None
         self.btn_play.label.set_text('Play')
         self.update_visualization()
         print("Animation reset to beginning")
@@ -969,10 +1265,7 @@ class AlgorithmVisualizer:
     def step_back(self, event):
         if self.current_step > 0:
             self.current_step -= 1
-            self.current_frame = 0
             self.is_playing = False
-            self.previous_data = None
-            self.previous_highlighted = None
             self.btn_play.label.set_text('Play')
             self.update_visualization()
         print(f"Step back to {self.current_step + 1}")
@@ -980,154 +1273,20 @@ class AlgorithmVisualizer:
     def step_forward(self, event):
         if self.current_step < len(self.steps) - 1:
             self.current_step += 1
-            self.current_frame = 0
             self.is_playing = False
-            self.previous_data = None
-            self.previous_highlighted = None
             self.btn_play.label.set_text('Play')
             self.update_visualization()
         print(f"Step forward to {self.current_step + 1}")
     
     def update_speed(self, val):
-        """Update animation speed with real-time adjustment"""
         self.speed = val
-        
-        # Update animation interval in real-time (much faster)
-        if hasattr(self, 'ani') and self.ani is not None:
-            # Calculate new interval (lower interval = faster animation)
-            new_interval = max(8, int(1000 / (self.speed * 2)))  # Much faster: minimum 8ms (120fps)
-            self.ani.event_source.interval = new_interval
-            
-            # Update the slider display text color based on speed
-            if self.speed >= 8.0:
-                self.slider_speed.valtext.set_color('#ff1744')  # Ultra fast
-            elif self.speed >= 5.0:
-                self.slider_speed.valtext.set_color('#ff6b6b')  # Very fast
-            elif self.speed >= 2.0:
-                self.slider_speed.valtext.set_color('#ffd93d')  # Fast
-            else:
-                self.slider_speed.valtext.set_color('#6bcf7f')  # Normal
-            
-            # Force redraw of the slider
-            self.fig.canvas.draw_idle()
-        
-        print(f"⚡ Speed updated to {self.speed:.1f}x (interval: {1000/self.speed:.0f}ms)")
-    
-    def set_speed_preset(self, speed):
-        """Set speed using preset buttons"""
-        self.slider_speed.set_val(speed)
-        self.update_speed(speed)
-        print(f"🎯 Speed preset applied: {speed:.1f}x")
-    
-    def get_speed_icon(self, speed):
-        """Get appropriate icon based on speed"""
-        if speed >= 8.0:
-            return '💨'  # Ultra fast
-        elif speed >= 5.0:
-            return '🚀'  # Very fast
-        elif speed >= 2.0:
-            return '⚡'  # Fast
-        else:
-            return '▶️'  # Normal
-    
-    def on_key_press(self, event):
-        """Handle keyboard shortcuts for speed control"""
-        if event.key == '1':
-            self.set_speed_preset(1.0)  # Normal
-        elif event.key == '2':
-            self.set_speed_preset(2.0)  # Fast
-        elif event.key == '3':
-            self.set_speed_preset(5.0)  # Very Fast
-        elif event.key == '4':
-            self.set_speed_preset(10.0)  # Ultra Fast
-        elif event.key == '+':
-            # Increase speed by 1x
-            new_speed = min(10.0, self.speed + 1.0)
-            self.slider_speed.set_val(new_speed)
-            self.update_speed(new_speed)
-        elif event.key == '-':
-            # Decrease speed by 1x
-            new_speed = max(0.5, self.speed - 1.0)
-            self.slider_speed.set_val(new_speed)
-            self.update_speed(new_speed)
-        elif event.key == ' ':
-            # Spacebar to toggle play/pause
-            self.toggle_play(event)
-    
-    def toggle_details(self, event):
-        """Toggle between simple and detailed view"""
-        self.show_details = not self.show_details
-        
-        if self.show_details:
-            self.btn_details.label.set_text('📊 SIMPLE')
-            self.btn_details.color = '#f44336'
-        else:
-            self.btn_details.label.set_text('📊 DETAILS')
-            self.btn_details.color = '#9C27B0'
-        
-        # Update the visualization to show/hide details
-        self.update_visualization()
-        print(f"Details view {'enabled' if self.show_details else 'disabled'}")
-    
-    def show_detailed_view(self, step):
-        """Show detailed information overlay on main visualization"""
-        # Count operations
-        current_comparisons = sum(1 for i in range(self.current_step + 1) 
-                                if 'COMPARE' in self.steps[i].get('action', ''))
-        current_swaps = sum(1 for i in range(self.current_step + 1) 
-                          if 'SWAP' in self.steps[i].get('action', ''))
-        
-        # Show detailed info as overlay on main visualization
-        self.ax_main.text(0.02, 0.98, '📊 DETAILED VIEW', 
-                         transform=self.ax_main.transAxes, fontsize=12, 
-                         color=self.colors['highlight'], fontweight='bold',
-                         bbox=dict(boxstyle='round,pad=0.3', facecolor=self.colors['accent'], 
-                                 alpha=0.2, edgecolor=self.colors['accent'], linewidth=2))
-        
-        # Performance metrics
-        metrics_text = f"🔍 Comparisons: {current_comparisons} | 🔄 Swaps: {current_swaps}"
-        self.ax_main.text(0.02, 0.92, metrics_text, 
-                         transform=self.ax_main.transAxes, fontsize=10, 
-                         color=self.colors['text'], fontweight='bold',
-                         bbox=dict(boxstyle='round,pad=0.2', facecolor=self.colors['panel_bg'], 
-                                 alpha=0.8))
-        
-        # Current action
-        action = step.get('action', 'Unknown').replace('_', ' ').title()
-        self.ax_main.text(0.02, 0.86, f"🎯 Action: {action}", 
-                         transform=self.ax_main.transAxes, fontsize=10, 
-                         color=self.colors['text'], fontweight='bold',
-                         bbox=dict(boxstyle='round,pad=0.2', facecolor=self.colors['panel_bg'], 
-                                 alpha=0.8))
-        
-        # Pseudocode
-        code = self.get_pseudocode(step.get('action', ''))
-        self.ax_main.text(0.02, 0.78, f"💻 Code:\n{code}", 
-                         transform=self.ax_main.transAxes, fontsize=9, 
-                         color=self.colors['accent'], fontfamily='monospace',
-                         bbox=dict(boxstyle='round,pad=0.3', facecolor='#0a0a0a', 
-                                 alpha=0.9, edgecolor=self.colors['accent'], linewidth=1))
+        if hasattr(self, 'ani'):
+            self.ani.event_source.interval = 1000 / self.speed
+        print(f"Speed updated to {self.speed:.1f}x")
 
 def main():
     print("=" * 60)
-    print("Starting Enhanced Algorithm Visualizer v5.1...")
-    print("=" * 60)
-    print("🚀 SPEED OPTIMIZATIONS:")
-    print("• 2x faster default speed (2.0x)")
-    print("• Ultra-fast mode up to 10x speed")
-    print("• 120fps animation (8ms intervals)")
-    print("• Speed presets: ▶️⚡🚀💨 (1x, 2x, 5x, 10x)")
-    print("• Keyboard shortcuts (1-4, +/-)")
-    print("• Optimized rendering with blitting")
-    print("• Reduced transition frames")
-    print("=" * 60)
-    print("New Features in v5.1:")
-    print("• Enhanced Input Validation")
-    print("• Memory Leak Fixes") 
-    print("• Better Error Messages")
-    print("• Improved BST Layout Algorithm")
-    print("• Smooth Animations & Transitions")
-    print("• Algorithm Comparison Mode")
+    print("Starting Enhanced Algorithm Visualizer v5.0...")
     print("=" * 60)
     
     if not os.path.exists('algorithm_steps.json'):
@@ -1154,4 +1313,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

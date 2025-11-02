@@ -2,202 +2,229 @@
   "steps": [
     {
       "step": 0,
-      "action": "MERGE_DIVIDE",
-      "data": [78, 60, 36, 42, 50, 61, 49, 35],
-      "highlighted": [1, 1, 1, 1, 1, 1, 1, 1],
+      "action": "INSERT_BST",
+      "data": [50],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 0 to 7",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 1,
-      "action": "MERGE_DIVIDE",
-      "data": [78, 60, 36, 42],
-      "highlighted": [1, 1, 1, 1],
+      "action": "INSERT_BST",
+      "data": [30],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 0 to 3",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 2,
-      "action": "MERGE_DIVIDE",
-      "data": [78, 60],
-      "highlighted": [1, 1],
+      "action": "INSERT_BST",
+      "data": [50, 30],
+      "highlighted": [0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 0 to 1",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 3,
-      "action": "MERGE_MERGE",
-      "data": [78, 60],
-      "highlighted": [2, 2],
+      "action": "INSERT_BST",
+      "data": [70],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 0-0 and 1-1",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 4,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [60, 78],
-      "highlighted": [3, 3],
+      "action": "INSERT_BST",
+      "data": [50, 30, 70],
+      "highlighted": [0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 0 to 1 merged",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 5,
-      "action": "MERGE_DIVIDE",
-      "data": [60, 78, 36, 42],
-      "highlighted": [0, 0, 1, 1],
+      "action": "INSERT_BST",
+      "data": [20],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 2 to 3",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 6,
-      "action": "MERGE_MERGE",
-      "data": [60, 78, 36, 42],
-      "highlighted": [0, 0, 2, 2],
+      "action": "INSERT_BST",
+      "data": [30, 20],
+      "highlighted": [0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 2-2 and 3-3",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 7,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [60, 78, 36, 42],
-      "highlighted": [0, 0, 3, 3],
+      "action": "INSERT_BST",
+      "data": [50, 30, 20, 70],
+      "highlighted": [0, 0, 1, 0],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 2 to 3 merged",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 8,
-      "action": "MERGE_MERGE",
-      "data": [60, 78, 36, 42],
-      "highlighted": [2, 2, 2, 2],
+      "action": "INSERT_BST",
+      "data": [40],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 0-1 and 2-3",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 9,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [36, 42, 60, 78],
-      "highlighted": [3, 3, 3, 3],
+      "action": "INSERT_BST",
+      "data": [30, 20, 40],
+      "highlighted": [0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 0 to 3 merged",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 10,
-      "action": "MERGE_DIVIDE",
-      "data": [36, 42, 60, 78, 50, 61, 49, 35],
-      "highlighted": [0, 0, 0, 0, 1, 1, 1, 1],
+      "action": "INSERT_BST",
+      "data": [50, 30, 20, 40, 70],
+      "highlighted": [0, 0, 0, 1, 0],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 4 to 7",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 11,
-      "action": "MERGE_DIVIDE",
-      "data": [36, 42, 60, 78, 50, 61],
-      "highlighted": [0, 0, 0, 0, 1, 1],
+      "action": "INSERT_BST",
+      "data": [60],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 4 to 5",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 12,
-      "action": "MERGE_MERGE",
-      "data": [36, 42, 60, 78, 50, 61],
-      "highlighted": [0, 0, 0, 0, 2, 2],
+      "action": "INSERT_BST",
+      "data": [70, 60],
+      "highlighted": [0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 4-4 and 5-5",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 13,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [36, 42, 60, 78, 50, 61],
-      "highlighted": [0, 0, 0, 0, 3, 3],
+      "action": "INSERT_BST",
+      "data": [50, 30, 20, 40, 70, 60],
+      "highlighted": [0, 0, 0, 0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 4 to 5 merged",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 14,
-      "action": "MERGE_DIVIDE",
-      "data": [36, 42, 60, 78, 50, 61, 49, 35],
-      "highlighted": [0, 0, 0, 0, 0, 0, 1, 1],
+      "action": "INSERT_BST",
+      "data": [80],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Dividing array from index 6 to 7",
-      "complexity": "O(n log n)"
+      "description": "Inserted root node",
+      "complexity": "O(1)"
     },
     {
       "step": 15,
-      "action": "MERGE_MERGE",
-      "data": [36, 42, 60, 78, 50, 61, 49, 35],
-      "highlighted": [0, 0, 0, 0, 0, 0, 2, 2],
+      "action": "INSERT_BST",
+      "data": [70, 60, 80],
+      "highlighted": [0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 6-6 and 7-7",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 16,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [36, 42, 60, 78, 50, 61, 35, 49],
-      "highlighted": [0, 0, 0, 0, 0, 0, 3, 3],
+      "action": "INSERT_BST",
+      "data": [50, 30, 20, 40, 70, 60, 80],
+      "highlighted": [0, 0, 0, 0, 0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 6 to 7 merged",
-      "complexity": "O(n log n)"
+      "description": "Node inserted in BST",
+      "complexity": "O(log n)"
     },
     {
       "step": 17,
-      "action": "MERGE_MERGE",
-      "data": [36, 42, 60, 78, 50, 61, 35, 49],
-      "highlighted": [0, 0, 0, 0, 2, 2, 2, 2],
+      "action": "INORDER_TRAVERSAL",
+      "data": [20],
+      "highlighted": [1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 4-5 and 6-7",
-      "complexity": "O(n log n)"
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
     },
     {
       "step": 18,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [36, 42, 60, 78, 35, 49, 50, 61],
-      "highlighted": [0, 0, 0, 0, 3, 3, 3, 3],
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30],
+      "highlighted": [0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 4 to 7 merged",
-      "complexity": "O(n log n)"
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
     },
     {
       "step": 19,
-      "action": "MERGE_MERGE",
-      "data": [36, 42, 60, 78, 35, 49, 50, 61],
-      "highlighted": [2, 2, 2, 2, 2, 2, 2, 2],
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40],
+      "highlighted": [0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merging subarrays from 0-3 and 4-7",
-      "complexity": "O(n log n)"
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
     },
     {
       "step": 20,
-      "action": "MERGE_COMPLETE_SUB",
-      "data": [35, 36, 42, 49, 50, 60, 61, 78],
-      "highlighted": [3, 3, 3, 3, 3, 3, 3, 3],
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40, 50],
+      "highlighted": [0, 0, 0, 1],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Subarray from 0 to 7 merged",
-      "complexity": "O(n log n)"
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
     },
     {
       "step": 21,
-      "action": "MERGE_COMPLETE",
-      "data": [35, 36, 42, 49, 50, 60, 61, 78],
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40, 50, 60],
+      "highlighted": [0, 0, 0, 0, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
+    },
+    {
+      "step": 22,
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40, 50, 60, 70],
+      "highlighted": [0, 0, 0, 0, 0, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
+    },
+    {
+      "step": 23,
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40, 50, 60, 70, 80],
+      "highlighted": [0, 0, 0, 0, 0, 0, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
+    },
+    {
+      "step": 24,
+      "action": "INORDER_TRAVERSAL",
+      "data": [20, 30, 40, 50, 60, 70, 80, 0],
       "highlighted": [0, 0, 0, 0, 0, 0, 0, 0],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Merge sort completed",
-      "complexity": "O(n log n)"
+      "description": "Inorder traversal of BST",
+      "complexity": "O(n)"
     }
   ],
-  "total_steps": 22
+  "total_steps": 25
 }

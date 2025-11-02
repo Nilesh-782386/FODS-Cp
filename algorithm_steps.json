@@ -2,49 +2,202 @@
   "steps": [
     {
       "step": 0,
-      "action": "PUSH",
-      "data": [1],
-      "highlighted": [1],
-      "pointers": [0, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Element pushed to stack",
-      "complexity": "O(1)"
+      "action": "MERGE_DIVIDE",
+      "data": [78, 60, 36, 42, 50, 61, 49, 35],
+      "highlighted": [1, 1, 1, 1, 1, 1, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 0 to 7",
+      "complexity": "O(n log n)"
     },
     {
       "step": 1,
-      "action": "PUSH",
-      "data": [1, 2],
-      "highlighted": [0, 1],
-      "pointers": [1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Element pushed to stack",
-      "complexity": "O(1)"
+      "action": "MERGE_DIVIDE",
+      "data": [78, 60, 36, 42],
+      "highlighted": [1, 1, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 0 to 3",
+      "complexity": "O(n log n)"
     },
     {
       "step": 2,
-      "action": "PUSH",
-      "data": [1, 2, 3],
-      "highlighted": [0, 0, 1],
-      "pointers": [2, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Element pushed to stack",
-      "complexity": "O(1)"
+      "action": "MERGE_DIVIDE",
+      "data": [78, 60],
+      "highlighted": [1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 0 to 1",
+      "complexity": "O(n log n)"
     },
     {
       "step": 3,
-      "action": "PUSH",
-      "data": [1, 2, 3, 4],
-      "highlighted": [0, 0, 0, 1],
-      "pointers": [3, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Element pushed to stack",
-      "complexity": "O(1)"
+      "action": "MERGE_MERGE",
+      "data": [78, 60],
+      "highlighted": [2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 0-0 and 1-1",
+      "complexity": "O(n log n)"
     },
     {
       "step": 4,
-      "action": "PUSH",
-      "data": [1, 2, 3, 4, 5],
-      "highlighted": [0, 0, 0, 0, 1],
-      "pointers": [4, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Element pushed to stack",
-      "complexity": "O(1)"
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [60, 78],
+      "highlighted": [3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 0 to 1 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 5,
+      "action": "MERGE_DIVIDE",
+      "data": [60, 78, 36, 42],
+      "highlighted": [0, 0, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 2 to 3",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 6,
+      "action": "MERGE_MERGE",
+      "data": [60, 78, 36, 42],
+      "highlighted": [0, 0, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 2-2 and 3-3",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 7,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [60, 78, 36, 42],
+      "highlighted": [0, 0, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 2 to 3 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 8,
+      "action": "MERGE_MERGE",
+      "data": [60, 78, 36, 42],
+      "highlighted": [2, 2, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 0-1 and 2-3",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 9,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [36, 42, 60, 78],
+      "highlighted": [3, 3, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 0 to 3 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 10,
+      "action": "MERGE_DIVIDE",
+      "data": [36, 42, 60, 78, 50, 61, 49, 35],
+      "highlighted": [0, 0, 0, 0, 1, 1, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 4 to 7",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 11,
+      "action": "MERGE_DIVIDE",
+      "data": [36, 42, 60, 78, 50, 61],
+      "highlighted": [0, 0, 0, 0, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 4 to 5",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 12,
+      "action": "MERGE_MERGE",
+      "data": [36, 42, 60, 78, 50, 61],
+      "highlighted": [0, 0, 0, 0, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 4-4 and 5-5",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 13,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [36, 42, 60, 78, 50, 61],
+      "highlighted": [0, 0, 0, 0, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 4 to 5 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 14,
+      "action": "MERGE_DIVIDE",
+      "data": [36, 42, 60, 78, 50, 61, 49, 35],
+      "highlighted": [0, 0, 0, 0, 0, 0, 1, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Dividing array from index 6 to 7",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 15,
+      "action": "MERGE_MERGE",
+      "data": [36, 42, 60, 78, 50, 61, 49, 35],
+      "highlighted": [0, 0, 0, 0, 0, 0, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 6-6 and 7-7",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 16,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [36, 42, 60, 78, 50, 61, 35, 49],
+      "highlighted": [0, 0, 0, 0, 0, 0, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 6 to 7 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 17,
+      "action": "MERGE_MERGE",
+      "data": [36, 42, 60, 78, 50, 61, 35, 49],
+      "highlighted": [0, 0, 0, 0, 2, 2, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 4-5 and 6-7",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 18,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [36, 42, 60, 78, 35, 49, 50, 61],
+      "highlighted": [0, 0, 0, 0, 3, 3, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 4 to 7 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 19,
+      "action": "MERGE_MERGE",
+      "data": [36, 42, 60, 78, 35, 49, 50, 61],
+      "highlighted": [2, 2, 2, 2, 2, 2, 2, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merging subarrays from 0-3 and 4-7",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 20,
+      "action": "MERGE_COMPLETE_SUB",
+      "data": [35, 36, 42, 49, 50, 60, 61, 78],
+      "highlighted": [3, 3, 3, 3, 3, 3, 3, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Subarray from 0 to 7 merged",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 21,
+      "action": "MERGE_COMPLETE",
+      "data": [35, 36, 42, 49, 50, 60, 61, 78],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Merge sort completed",
+      "complexity": "O(n log n)"
     }
   ],
-  "total_steps": 5
+  "total_steps": 22
 }

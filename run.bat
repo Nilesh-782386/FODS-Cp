@@ -1,6 +1,5 @@
 @echo off
 setlocal enabledelayedexpansion
-
 echo.
 echo ============================================================
 echo   Algorithm Visualizer v6.0 - ZERO OVERLAPPING EDITION
@@ -14,9 +13,7 @@ echo   ✓ Enhanced Spacing and Margins
 echo   ✓ Professional Appearance
 echo ============================================================
 echo.
-
 cd /d "%~dp0"
-
 REM Check if required files exist
 if not exist "main.c" (
     echo [ERROR] main.c not found!

@@ -2,229 +2,409 @@
   "steps": [
     {
       "step": 0,
-      "action": "INSERT_BST",
-      "data": [50],
-      "highlighted": [1],
+      "action": "QUICK_PARTITION",
+      "data": [40, 40, 15, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Partitioning with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 1,
-      "action": "INSERT_BST",
-      "data": [30],
-      "highlighted": [1],
+      "action": "QUICK_COMPARE",
+      "data": [40, 40, 15, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [1, 0, 0, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Comparing 40 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 2,
-      "action": "INSERT_BST",
-      "data": [50, 30],
-      "highlighted": [0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [40, 40, 15, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [0, 1, 0, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 40 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 3,
-      "action": "INSERT_BST",
-      "data": [70],
-      "highlighted": [1],
+      "action": "QUICK_COMPARE",
+      "data": [40, 40, 15, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [0, 0, 1, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Comparing 15 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 4,
-      "action": "INSERT_BST",
-      "data": [50, 30, 70],
-      "highlighted": [0, 0, 1],
+      "action": "QUICK_SWAP",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 2, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 5,
-      "action": "INSERT_BST",
-      "data": [20],
-      "highlighted": [1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 1, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Comparing 37 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 6,
-      "action": "INSERT_BST",
-      "data": [30, 20],
-      "highlighted": [0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 0, 1, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 37 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 7,
-      "action": "INSERT_BST",
-      "data": [50, 30, 20, 70],
-      "highlighted": [0, 0, 1, 0],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 0, 0, 1, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 34 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 8,
-      "action": "INSERT_BST",
-      "data": [40],
-      "highlighted": [1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 0, 0, 0, 1, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Comparing 30 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 9,
-      "action": "INSERT_BST",
-      "data": [30, 20, 40],
-      "highlighted": [0, 0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 0, 0, 0, 0, 1, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 39 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 10,
-      "action": "INSERT_BST",
-      "data": [50, 30, 20, 40, 70],
-      "highlighted": [0, 0, 0, 1, 0],
+      "action": "QUICK_COMPARE",
+      "data": [15, 40, 40, 37, 37, 34, 30, 39, 32, 29],
+      "highlighted": [2, 0, 0, 0, 0, 0, 0, 0, 1, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 32 with pivot 29",
+      "complexity": "O(n log n)"
     },
     {
       "step": 11,
-      "action": "INSERT_BST",
-      "data": [60],
-      "highlighted": [1],
+      "action": "QUICK_PIVOT_PLACE",
+      "data": [15, 29, 40, 37, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 3, 0, 0, 0, 0, 0, 0, 0, 0],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Pivot placed in correct position",
+      "complexity": "O(n log n)"
     },
     {
       "step": 12,
-      "action": "INSERT_BST",
-      "data": [70, 60],
-      "highlighted": [0, 1],
+      "action": "QUICK_PARTITION",
+      "data": [15, 29, 40, 37, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Partitioning with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 13,
-      "action": "INSERT_BST",
-      "data": [50, 30, 20, 40, 70, 60],
-      "highlighted": [0, 0, 0, 0, 0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 40, 37, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 2, 1, 0, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 40 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 14,
-      "action": "INSERT_BST",
-      "data": [80],
-      "highlighted": [1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 40, 37, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 2, 0, 1, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inserted root node",
-      "complexity": "O(1)"
+      "description": "Comparing 37 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 15,
-      "action": "INSERT_BST",
-      "data": [70, 60, 80],
-      "highlighted": [0, 0, 1],
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 40, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 2, 2, 2, 0, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 16,
-      "action": "INSERT_BST",
-      "data": [50, 30, 20, 40, 70, 60, 80],
-      "highlighted": [0, 0, 0, 0, 0, 0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 40, 37, 34, 30, 39, 32, 40],
+      "highlighted": [0, 0, 2, 0, 1, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Node inserted in BST",
-      "complexity": "O(log n)"
+      "description": "Comparing 37 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 17,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20],
-      "highlighted": [1],
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 37, 40, 34, 30, 39, 32, 40],
+      "highlighted": [0, 0, 2, 2, 2, 0, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 18,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30],
-      "highlighted": [0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 40, 34, 30, 39, 32, 40],
+      "highlighted": [0, 0, 0, 2, 0, 1, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Comparing 34 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 19,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40],
-      "highlighted": [0, 0, 1],
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 37, 34, 40, 30, 39, 32, 40],
+      "highlighted": [0, 0, 0, 2, 2, 2, 0, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 20,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40, 50],
-      "highlighted": [0, 0, 0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 40, 30, 39, 32, 40],
+      "highlighted": [0, 0, 0, 0, 2, 0, 1, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Comparing 30 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 21,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40, 50, 60],
-      "highlighted": [0, 0, 0, 0, 1],
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 37, 34, 30, 40, 39, 32, 40],
+      "highlighted": [0, 0, 0, 0, 2, 2, 2, 0, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 22,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40, 50, 60, 70],
-      "highlighted": [0, 0, 0, 0, 0, 1],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 40, 39, 32, 40],
+      "highlighted": [0, 0, 0, 0, 0, 2, 0, 1, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Comparing 39 with pivot 40",
+      "complexity": "O(n log n)"
     },
     {
       "step": 23,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40, 50, 60, 70, 80],
-      "highlighted": [0, 0, 0, 0, 0, 0, 1],
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 37, 34, 30, 39, 40, 32, 40],
+      "highlighted": [0, 0, 0, 0, 0, 2, 2, 2, 0, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
     },
     {
       "step": 24,
-      "action": "INORDER_TRAVERSAL",
-      "data": [20, 30, 40, 50, 60, 70, 80, 0],
-      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0],
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 40, 32, 40],
+      "highlighted": [0, 0, 0, 0, 0, 0, 2, 0, 1, 3],
       "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-      "description": "Inorder traversal of BST",
-      "complexity": "O(n)"
+      "description": "Comparing 32 with pivot 40",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 25,
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32, 40, 40],
+      "highlighted": [0, 0, 0, 0, 0, 0, 2, 2, 2, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 26,
+      "action": "QUICK_PIVOT_PLACE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32, 40, 40],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0, 3, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Pivot placed in correct position",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 27,
+      "action": "QUICK_PARTITION",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Partitioning with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 28,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32],
+      "highlighted": [0, 2, 1, 0, 0, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 37 with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 29,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32],
+      "highlighted": [0, 2, 0, 1, 0, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 37 with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 30,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32],
+      "highlighted": [0, 2, 0, 0, 1, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 34 with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 31,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 37, 37, 34, 30, 39, 32],
+      "highlighted": [0, 2, 0, 0, 0, 1, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 30 with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 32,
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 30, 37, 34, 37, 39, 32],
+      "highlighted": [0, 2, 2, 0, 0, 2, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 33,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 30, 37, 34, 37, 39, 32],
+      "highlighted": [0, 0, 2, 0, 0, 0, 1, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 39 with pivot 32",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 34,
+      "action": "QUICK_PIVOT_PLACE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 3, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Pivot placed in correct position",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 35,
+      "action": "QUICK_PARTITION",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Partitioning with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 36,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 2, 1, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 34 with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 37,
+      "action": "QUICK_SWAP",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 2, 2, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Elements swapped",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 38,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 2, 1, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 37 with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 39,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 2, 0, 1, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 39 with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 40,
+      "action": "QUICK_PIVOT_PLACE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 0, 3, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Pivot placed in correct position",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 41,
+      "action": "QUICK_PARTITION",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Partitioning with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 42,
+      "action": "QUICK_COMPARE",
+      "data": [15, 29, 30, 32, 34, 37, 39, 37],
+      "highlighted": [0, 0, 0, 0, 0, 2, 1, 3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 39 with pivot 37",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 43,
+      "action": "QUICK_PIVOT_PLACE",
+      "data": [15, 29, 30, 32, 34, 37, 37, 39],
+      "highlighted": [0, 0, 0, 0, 0, 0, 3, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Pivot placed in correct position",
+      "complexity": "O(n log n)"
+    },
+    {
+      "step": 44,
+      "action": "QUICK_COMPLETE",
+      "data": [15, 29, 30, 32, 34, 37, 37, 39, 40, 40],
+      "highlighted": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Quick sort completed",
+      "complexity": "O(n log n)"
     }
   ],
-  "total_steps": 25
+  "total_steps": 45
 }

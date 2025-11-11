@@ -81,10 +81,11 @@ void cleanup_memory();
 // Binary Tree operations
 TreeNode* create_node(int data);
 TreeNode* insert_bst(TreeNode* root, int data);
-TreeNode* search_bst(TreeNode* root, int data);
+TreeNode* find_min_node(TreeNode* node);
 TreeNode* delete_bst(TreeNode* root, int data);
 void inorder_traversal(TreeNode* root, int* arr, int* index);
-void tree_to_array(TreeNode* root, int* arr, int* index, int level, int max_nodes);
+void tree_to_array(TreeNode* root, int* arr, int* index);
+void free_tree(TreeNode* root);
 
 // Linked List operations
 void insert_at_beginning(int data);
@@ -227,11 +228,18 @@ int safe_input_array(int* arr, int size) {
     return SUCCESS;
 }
 
+void free_tree(TreeNode* root) {
+    if (root != NULL) {
+        free_tree(root->left);
+        free_tree(root->right);
+        free(root);
+    }
+}
+
 void cleanup_memory() {
     // Free BST memory
-    while (root != NULL) {
-        root = delete_bst(root, root->data);
-    }
+    free_tree(root);
+    root = NULL;
     
     // Free linked list memory
     while (head != NULL) {
@@ -293,77 +301,67 @@ void copy_array(int* dest, int* src, int size) {
     }
 }
 
-// Binary Tree functions
+// ============================================================================
+// BINARY SEARCH TREE FUNCTIONS - PROPER BST IMPLEMENTATION
+// ============================================================================
+
 TreeNode* create_node(int data) {
     TreeNode* node = (TreeNode*)malloc(sizeof(TreeNode));
+    if (node == NULL) {
+        printf("Memory allocation failed!\n");
+        return NULL;
+    }
     node->data = data;
     node->left = NULL;
     node->right = NULL;
     return node;
 }
 
-TreeNode* insert_bst(TreeNode* root, int data) {
-    if (root == NULL) {
-        root = create_node(data);
-        
-        int tree_arr[MAX_SIZE] = {0};
-        int index = 0;
-        tree_to_array(root, tree_arr, &index, 0, MAX_SIZE);
-        int highlighted[MAX_SIZE] = {0};
-        highlighted[0] = 1;
-        
-        add_step("INSERT_BST", tree_arr, index, highlighted, NULL, 
-                 "Inserted root node", "O(1)");
-        return root;
-    }
-    
-    if (data < root->data) {
-        root->left = insert_bst(root->left, data);
-    } else if (data > root->data) {
-        root->right = insert_bst(root->right, data);
-    }
-    
-    int tree_arr[MAX_SIZE] = {0};
-    int index = 0;
-    tree_to_array(root, tree_arr, &index, 0, MAX_SIZE);
-    int highlighted[MAX_SIZE] = {0};
-    
-    for (int i = 0; i < index; i++) {
-        if (tree_arr[i] == data) {
-            highlighted[i] = 1;
-            break;
-        }
-    }
-    
-    add_step("INSERT_BST", tree_arr, index, highlighted, NULL, 
-             "Node inserted in BST", "O(log n)");
-    
-    return root;
-}
-
-void tree_to_array(TreeNode* root, int* arr, int* index, int level, int max_nodes) {
-    if (root == NULL || *index >= max_nodes) return;
+// Convert BST to array using level-order-like traversal for visualization
+void tree_to_array(TreeNode* root, int* arr, int* index) {
+    if (root == NULL || *index >= MAX_SIZE) return;
     
     arr[*index] = root->data;
     (*index)++;
     
-    if (root->left) tree_to_array(root->left, arr, index, level + 1, max_nodes);
-    if (root->right) tree_to_array(root->right, arr, index, level + 1, max_nodes);
+    // Traverse left subtree first, then right (pre-order style for array building)
+    if (root->left) tree_to_array(root->left, arr, index);
+    if (root->right) tree_to_array(root->right, arr, index);
 }
 
-TreeNode* search_bst(TreeNode* root, int data) {
-    int tree_arr[MAX_SIZE] = {0};
-    int index = 0;
-    int highlighted[MAX_SIZE] = {0};
+TreeNode* insert_bst(TreeNode* root, int data) {
+    // Case 1: Empty tree - create root
+    if (root == NULL) {
+        root = create_node(data);
+        if (root == NULL) return NULL;
+        
+        int tree_arr[MAX_SIZE] = {0};
+        int index = 0;
+        tree_to_array(root, tree_arr, &index);
+        int highlighted[MAX_SIZE] = {0};
+        highlighted[0] = 1;
+        
+        char desc[200];
+        sprintf(desc, "Created root node with value %d", data);
+        add_step("INSERT_BST_ROOT", tree_arr, index, highlighted, NULL, desc, "O(log n)");
+        return root;
+    }
     
+    // Case 2: Tree exists - find insertion point
     TreeNode* current = root;
+    TreeNode* parent = NULL;
+    int went_left = 0;
     
     while (current != NULL) {
-        index = 0;
-        memset(tree_arr, 0, sizeof(tree_arr));
-        memset(highlighted, 0, sizeof(highlighted));
-        tree_to_array(root, tree_arr, &index, 0, MAX_SIZE);
+        parent = current;
         
+        // Show current comparison
+        int tree_arr[MAX_SIZE] = {0};
+        int index = 0;
+        tree_to_array(root, tree_arr, &index);
+        int highlighted[MAX_SIZE] = {0};
+        
+        // Highlight current node being checked
         for (int i = 0; i < index; i++) {
             if (tree_arr[i] == current->data) {
                 highlighted[i] = 1;
@@ -372,43 +370,76 @@ TreeNode* search_bst(TreeNode* root, int data) {
         }
         
         char desc[200];
-        sprintf(desc, "Searching for %d, checking node %d", data, current->data);
-        add_step("SEARCH_BST", tree_arr, index, highlighted, NULL, desc, "O(log n)");
-        
-        if (data == current->data) {
-            for (int i = 0; i < index; i++) {
-                if (tree_arr[i] == data) {
-                    highlighted[i] = 2;
-                    break;
-                }
-            }
-            add_step("SEARCH_BST_FOUND", tree_arr, index, highlighted, NULL, 
-                     "Target found!", "O(log n)");
-            return current;
-        } else if (data < current->data) {
+        if (data < current->data) {
+            sprintf(desc, "Comparing %d < %d → Go LEFT", data, current->data);
+            add_step("INSERT_BST_COMPARE_LEFT", tree_arr, index, highlighted, NULL, desc, "O(log n)");
             current = current->left;
-        } else {
+            went_left = 1;
+        } else if (data > current->data) {
+            sprintf(desc, "Comparing %d > %d → Go RIGHT", data, current->data);
+            add_step("INSERT_BST_COMPARE_RIGHT", tree_arr, index, highlighted, NULL, desc, "O(log n)");
             current = current->right;
+            went_left = 0;
+        } else {
+            // Duplicate value - don't insert
+            sprintf(desc, "Value %d already exists in BST (no duplicates)", data);
+            add_step("INSERT_BST_DUPLICATE", tree_arr, index, highlighted, NULL, desc, "O(log n)");
+            return root;
         }
     }
     
-    add_step("SEARCH_BST_NOT_FOUND", tree_arr, index, highlighted, NULL, 
-             "Target not found", "O(log n)");
-    return NULL;
+    // Insert new node at correct position
+    TreeNode* new_node = create_node(data);
+    if (new_node == NULL) return root;
+    
+    if (went_left) {
+        parent->left = new_node;
+    } else {
+        parent->right = new_node;
+    }
+    
+    // Show final tree with new node highlighted
+    int tree_arr[MAX_SIZE] = {0};
+    int index = 0;
+    tree_to_array(root, tree_arr, &index);
+    int highlighted[MAX_SIZE] = {0};
+    
+    for (int i = 0; i < index; i++) {
+        if (tree_arr[i] == data) {
+            highlighted[i] = 2; // Green - newly inserted
+            break;
+        }
+    }
+    
+    char desc[200];
+    sprintf(desc, "✓ Inserted %d as %s child of %d", data, 
+            went_left ? "LEFT" : "RIGHT", parent->data);
+    add_step("INSERT_BST_COMPLETE", tree_arr, index, highlighted, NULL, desc, "O(log n)");
+    
+    return root;
+}
+
+TreeNode* find_min_node(TreeNode* node) {
+    TreeNode* current = node;
+    while (current && current->left != NULL) {
+        current = current->left;
+    }
+    return current;
 }
 
 TreeNode* delete_bst(TreeNode* root, int data) {
     if (root == NULL) {
         int tree_arr[MAX_SIZE] = {0};
         int highlighted[MAX_SIZE] = {0};
-        add_step("DELETE_BST_NOT_FOUND", tree_arr, 0, highlighted, NULL, 
-                 "Element not found in BST", "O(log n)");
+        add_step("DELETE_BST_EMPTY", tree_arr, 0, highlighted, NULL, 
+                 "Cannot delete from empty BST", "O(log n)");
         return root;
     }
     
+    // Visualize search phase
     int tree_arr[MAX_SIZE] = {0};
     int index = 0;
-    tree_to_array(root, tree_arr, &index, 0, MAX_SIZE);
+    tree_to_array(root, tree_arr, &index);
     int highlighted[MAX_SIZE] = {0};
     
     for (int i = 0; i < index; i++) {
@@ -422,21 +453,24 @@ TreeNode* delete_bst(TreeNode* root, int data) {
     sprintf(desc, "Searching for %d to delete, checking node %d", data, root->data);
     add_step("DELETE_BST_SEARCH", tree_arr, index, highlighted, NULL, desc, "O(log n)");
     
+    // Recursive deletion
     if (data < root->data) {
         root->left = delete_bst(root->left, data);
     } else if (data > root->data) {
         root->right = delete_bst(root->right, data);
     } else {
+        // Node found - visualize before deletion
         memset(highlighted, 0, sizeof(highlighted));
         for (int i = 0; i < index; i++) {
             if (tree_arr[i] == data) {
-                highlighted[i] = 2;
+                highlighted[i] = 3; // Yellow - target
                 break;
             }
         }
         add_step("DELETE_BST_FOUND", tree_arr, index, highlighted, NULL, 
                  "Node found - proceeding with deletion", "O(log n)");
         
+        // Case 1: Node with only one child or no child
         if (root->left == NULL) {
             TreeNode* temp = root->right;
             free(root);
@@ -447,19 +481,22 @@ TreeNode* delete_bst(TreeNode* root, int data) {
             return temp;
         }
         
-        TreeNode* temp = root->right;
-        while (temp->left != NULL) {
-            temp = temp->left;
-        }
+        // Case 2: Node with two children
+        // Get inorder successor (smallest in right subtree)
+        TreeNode* temp = find_min_node(root->right);
         
+        // Copy successor's data to this node
         root->data = temp->data;
+        
+        // Delete the successor
         root->right = delete_bst(root->right, temp->data);
     }
     
+    // Visualize tree after deletion
     memset(tree_arr, 0, sizeof(tree_arr));
     memset(highlighted, 0, sizeof(highlighted));
     index = 0;
-    tree_to_array(root, tree_arr, &index, 0, MAX_SIZE);
+    tree_to_array(root, tree_arr, &index);
     add_step("DELETE_BST_COMPLETE", tree_arr, index, highlighted, NULL, 
              "Node deleted from BST", "O(log n)");
     
@@ -475,7 +512,10 @@ void inorder_traversal(TreeNode* root, int* arr, int* index) {
     }
 }
 
-// Linked List functions
+// ============================================================================
+// LINKED LIST FUNCTIONS
+// ============================================================================
+
 void insert_at_beginning(int data) {
     ListNode* new_node = (ListNode*)malloc(sizeof(ListNode));
     new_node->data = data;
@@ -607,7 +647,10 @@ void search_linked_list(int data) {
              "Element not found", "O(n)");
 }
 
-// Stack functions
+// ============================================================================
+// STACK & QUEUE FUNCTIONS
+// ============================================================================
+
 void push(int data) {
     if (stack.top >= MAX_SIZE - 1) {
         printf("Stack overflow!\n");
@@ -649,7 +692,6 @@ int pop() {
     return data;
 }
 
-// Queue functions
 void enqueue(int data) {
     if (queue.rear >= MAX_SIZE - 1) {
         printf("Queue overflow!\n");
@@ -698,7 +740,10 @@ int dequeue() {
     return data;
 }
 
-// Searching algorithms
+// ============================================================================
+// SEARCHING ALGORITHMS
+// ============================================================================
+
 void linear_search(int* arr, int size, int target) {
     for (int i = 0; i < size; i++) {
         int highlighted[MAX_SIZE] = {0};
@@ -752,7 +797,10 @@ void binary_search(int* arr, int size, int target) {
              "Target not found", "O(log n)");
 }
 
-// Sorting algorithms
+// ============================================================================
+// SORTING ALGORITHMS
+// ============================================================================
+
 void bubble_sort(int* arr, int size) {
     for (int i = 0; i < size - 1; i++) {
         for (int j = 0; j < size - i - 1; j++) {
@@ -1219,9 +1267,10 @@ int main() {
     printf("4. Queue (FIFO - 3 Operations)\n");
     printf("   - Enqueue, Dequeue, Combined Demo\n");
     printf("\n");
-    printf("5. Binary Search Tree (5 Operations)\n");
-    printf("   - Insert, Search, Delete\n");
-    printf("   - Inorder Traversal, Complete Demo\n");
+    printf("5. Binary Search Tree (3 Operations)\n");
+    printf("   - Insert Elements (PROPER BST ORDER)\n");
+    printf("   - Inorder Traversal (Sorted Order)\n");
+    printf("   - Delete Element\n");
     printf("=================================================\n\n");
     
     int choice, sub_choice;
@@ -1601,14 +1650,12 @@ int main() {
         
         case 5: {
             printf("\nBinary Search Tree (BST) Operations:\n");
-            printf("1. Insert Elements\n");
-            printf("2. Search Element\n");
+            printf("1. Insert Elements (PROPER BST ORDER)\n");
+            printf("2. Inorder Traversal (Sorted Order)\n");
             printf("3. Delete Element\n");
-            printf("4. Inorder Traversal\n");
-            printf("5. Complete BST Demo\n");
             printf("\n");
             
-            result = safe_input_int("Enter your choice (1-5): ", &sub_choice, 1, 5);
+            result = safe_input_int("Enter your choice (1-3): ", &sub_choice, 1, 3);
             if (result != SUCCESS) {
                 printf("Exiting due to input error.\n");
                 cleanup_memory();
@@ -1640,15 +1687,18 @@ int main() {
                 root = insert_bst(root, 60);
                 root = insert_bst(root, 80);
                 
-                int target;
-                result = safe_input_int("Enter element to search in BST: ", &target, INT_MIN/2, INT_MAX/2);
-                if (result != SUCCESS) {
-                    printf("Exiting due to input error.\n");
-                    cleanup_memory();
-                    return ERROR_INVALID_INPUT;
+                int arr[MAX_SIZE];
+                int index = 0;
+                inorder_traversal(root, arr, &index);
+                
+                for (int i = 0; i < index; i++) {
+                    int highlighted[MAX_SIZE] = {0};
+                    highlighted[i] = 1;
+                    char desc[200];
+                    sprintf(desc, "Inorder traversal step %d: %d", i+1, arr[i]);
+                    add_step("INORDER_TRAVERSAL", arr, i+1, highlighted, NULL, desc, "O(n)");
                 }
-                search_bst(root, target);
-                write_config("binary_search_tree", "search");
+                write_config("binary_search_tree", "traversal");
             } else if (sub_choice == 3) {
                 printf("Creating demo BST for deletion: 50, 30, 70, 20, 40, 60, 80\n");
                 root = insert_bst(root, 50);
@@ -1667,40 +1717,6 @@ int main() {
                 }
                 root = delete_bst(root, target);
                 write_config("binary_search_tree", "delete");
-            } else if (sub_choice == 4) {
-                printf("Creating demo BST: 50, 30, 70, 20, 40, 60, 80\n");
-                root = insert_bst(root, 50);
-                root = insert_bst(root, 30);
-                root = insert_bst(root, 70);
-                root = insert_bst(root, 20);
-                root = insert_bst(root, 40);
-                root = insert_bst(root, 60);
-                root = insert_bst(root, 80);
-                
-                int arr[MAX_SIZE];
-                int index = 0;
-                inorder_traversal(root, arr, &index);
-                
-                for (int i = 0; i <= index; i++) {
-                    int highlighted[MAX_SIZE] = {0};
-                    if (i < index) highlighted[i] = 1;
-                    add_step("INORDER_TRAVERSAL", arr, i + 1, highlighted, NULL, 
-                             "Inorder traversal of BST", "O(n)");
-                }
-                write_config("binary_search_tree", "traversal");
-            } else if (sub_choice == 5) {
-                printf("Demonstrating complete BST operations...\n");
-                root = insert_bst(root, 50);
-                root = insert_bst(root, 30);
-                root = insert_bst(root, 70);
-                root = insert_bst(root, 20);
-                root = insert_bst(root, 40);
-                root = insert_bst(root, 60);
-                root = insert_bst(root, 80);
-                search_bst(root, 40);
-                search_bst(root, 100);
-                root = delete_bst(root, 30);
-                write_config("binary_search_tree", "complete_demo");
             }
             break;
         }

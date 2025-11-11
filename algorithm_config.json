@@ -1,0 +1,9 @@
+{
+  "structure_type": "binary_search_tree",
+  "operation": "delete",
+  "is_stack": false,
+  "is_queue": false,
+  "is_linked_list": false,
+  "is_binary_search_tree": true,
+  "is_array": false
+}

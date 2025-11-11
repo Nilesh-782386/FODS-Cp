@@ -428,10 +428,11 @@ class AlgorithmVisualizer:
                               color=self.colors['text'], pad=15, fontweight='bold')
     
     def visualize_binary_search_tree(self, step):
-        """BST TREE - matching C's tree_to_array traversal"""
+        """BST TREE - PROPER BST STRUCTURE visualization"""
         self.ax_main.clear()
         data = step['data']
         highlighted = step.get('highlighted', [0] * len(data))
+        action = step.get('action', '')
         
         if not data:
             self.ax_main.text(0.5, 0.5, '🌳 BST Empty', ha='center', va='center',
@@ -439,36 +440,64 @@ class AlgorithmVisualizer:
                             fontweight='bold', color=self.colors['text'])
             return
         
-        # Calculate positions based on C's traversal order
-        positions = self.calculate_tree_positions_cstyle(data)
+        # Calculate positions for proper BST structure
+        positions, edges = self.calculate_bst_positions(data)
         
-        # Draw edges first
-        for i in range(1, len(data)):
-            if i < len(positions):
-                parent_idx = (i - 1) // 2
-                if parent_idx < len(positions):
-                    self.ax_main.plot([positions[parent_idx][0], positions[i][0]],
-                                     [positions[parent_idx][1], positions[i][1]],
-                                     color=self.colors['link_arrow'], linewidth=3,
-                                     alpha=0.7, zorder=1)
+        # Draw edges first (tree connections) based on actual BST relationships
+        for parent_idx, child_idx in edges:
+            if parent_idx >= len(positions) or child_idx >= len(positions):
+                continue
+            parent_pos = positions[parent_idx]
+            child_pos = positions[child_idx]
+            if parent_pos is None or child_pos is None:
+                continue
+
+            self.ax_main.plot(
+                [parent_pos[0], child_pos[0]],
+                [parent_pos[1], child_pos[1]],
+                color=self.colors['link_arrow'],
+                linewidth=2.5,
+                alpha=0.7,
+                zorder=1,
+            )
         
         # Draw nodes
         for i, (val, h) in enumerate(zip(data, highlighted)):
-            if i < len(positions):
+            if positions[i] is not None:
                 x, y = positions[i]
                 col = self.get_highlight_color(h)
                 edge_col = '#FFFFFF' if h != 0 else '#9F7AEA'
                 edge_w = 4 if h != 0 else 2
                 
-                circle = Circle((x, y), 0.15, facecolor=col, alpha=0.9,
+                circle = Circle((x, y), 0.2, facecolor=col, alpha=0.9,
                               edgecolor=edge_col, linewidth=edge_w, zorder=3)
                 self.ax_main.add_patch(circle)
+                
                 self.ax_main.text(x, y, str(val), ha='center', va='center',
-                                fontsize=11, fontweight='bold', color='white', zorder=4)
+                                fontsize=12, fontweight='bold', color='white', zorder=4)
         
-        if positions:
-            x_coords = [p[0] for p in positions]
-            y_coords = [p[1] for p in positions]
+        # Add BST-specific annotations based on action
+        if 'INSERT' in action:
+            self.ax_main.text(0.98, 0.95, '🌱 Inserting Node', transform=self.ax_main.transAxes,
+                             ha='right', va='top', fontsize=11, color=self.colors['sorted'],
+                             fontweight='bold', bbox=dict(boxstyle='round,pad=0.5',
+                             facecolor=self.colors['panel_bg'], edgecolor=self.colors['sorted'], linewidth=2))
+        elif 'DELETE' in action:
+            self.ax_main.text(0.98, 0.95, '🗑️ Deleting Node', transform=self.ax_main.transAxes,
+                             ha='right', va='top', fontsize=11, color=self.colors['comparing'],
+                             fontweight='bold', bbox=dict(boxstyle='round,pad=0.5',
+                             facecolor=self.colors['panel_bg'], edgecolor=self.colors['comparing'], linewidth=2))
+        elif 'INORDER' in action:
+            self.ax_main.text(0.98, 0.95, '📈 Inorder Traversal', transform=self.ax_main.transAxes,
+                             ha='right', va='top', fontsize=11, color=self.colors['active'],
+                             fontweight='bold', bbox=dict(boxstyle='round,pad=0.5',
+                             facecolor=self.colors['panel_bg'], edgecolor=self.colors['active'], linewidth=2))
+        
+        # Set appropriate limits
+        x_coords = [p[0] for p in positions if p is not None]
+        y_coords = [p[1] for p in positions if p is not None]
+        
+        if x_coords and y_coords:
             x_margin = (max(x_coords) - min(x_coords)) * 0.2 + 0.5
             y_margin = (max(y_coords) - min(y_coords)) * 0.2 + 0.5
             self.ax_main.set_xlim(min(x_coords) - x_margin, max(x_coords) + x_margin)
@@ -479,31 +508,89 @@ class AlgorithmVisualizer:
         self.ax_main.set_title(step.get('description', ''), fontsize=14,
                               color=self.colors['text'], pad=15, fontweight='bold')
     
-    def calculate_tree_positions_cstyle(self, data):
-        """Calculate tree positions matching C's tree_to_array implementation"""
+    def calculate_bst_positions(self, data):
+        """Calculate ACTUAL BST positions based on tree structure derived from pre-order data"""
         if not data:
-            return []
-        
-        positions = []
-        for i in range(len(data)):
-            level = 0
-            temp = i + 1
-            while temp > 1:
-                temp //= 2
-                level += 1
-            
-            level_start = 2 ** level - 1
-            pos_in_level = i - level_start
-            total_in_level = 2 ** level
-            
-            # Horizontal positioning
-            x = (pos_in_level + 0.5) * (8.0 / total_in_level) - 4.0
-            # Vertical positioning
-            y = -level * 0.6
-            
-            positions.append((x, y))
-        
-        return positions
+            return [], []
+
+        positions = [None] * len(data)
+        edges = []
+
+        # Rebuild BST from preorder traversal with value bounds
+        index = 0
+
+        class Node:
+            __slots__ = ("value", "idx", "left", "right")
+
+            def __init__(self, value, idx):
+                self.value = value
+                self.idx = idx
+                self.left = None
+                self.right = None
+
+        def build(lower, upper):
+            nonlocal index
+            if index >= len(data):
+                return None
+
+            value = data[index]
+            if value <= lower or value >= upper:
+                return None
+
+            current_idx = index
+            index += 1
+
+            node = Node(value, current_idx)
+            node.left = build(lower, value)
+            node.right = build(value, upper)
+            return node
+
+        root = build(float("-inf"), float("inf"))
+
+        # Assign positions using in-order traversal to preserve BST ordering
+        horizontal_spacing = 2.0
+        vertical_spacing = 1.8
+        x_counter = 0
+
+        def assign_positions(node, depth):
+            nonlocal x_counter
+            if node is None:
+                return
+
+            assign_positions(node.left, depth + 1)
+
+            x = x_counter * horizontal_spacing
+            y = -depth * vertical_spacing
+            positions[node.idx] = (x, y)
+            x_counter += 1
+
+            assign_positions(node.right, depth + 1)
+
+        assign_positions(root, 0)
+
+        # Center the tree horizontally
+        x_values = [pos[0] for pos in positions if pos is not None]
+        if x_values:
+            center_shift = (max(x_values) + min(x_values)) / 2.0
+            positions = [
+                (pos[0] - center_shift, pos[1]) if pos is not None else None
+                for pos in positions
+            ]
+
+        # Collect edges based on reconstructed tree
+        def collect_edges(node):
+            if node is None:
+                return
+            if node.left:
+                edges.append((node.idx, node.left.idx))
+                collect_edges(node.left)
+            if node.right:
+                edges.append((node.idx, node.right.idx))
+                collect_edges(node.right)
+
+        collect_edges(root)
+
+        return positions, edges
     
     def update_info_panel(self, step):
         self.ax_info.clear()
@@ -547,6 +634,8 @@ class AlgorithmVisualizer:
                          if 'COMPARE' in self.steps[i].get('action', ''))
         swaps = sum(1 for i in range(self.current_step + 1) 
                    if 'SWAP' in self.steps[i].get('action', ''))
+        inserts = sum(1 for i in range(self.current_step + 1) 
+                     if 'INSERT' in self.steps[i].get('action', ''))
         
         self.ax_stats.text(0.5, 0.95, '📈 Live Statistics', ha='center', va='top',
                           fontsize=11, fontweight='bold', color=self.colors['text'],
@@ -554,7 +643,8 @@ class AlgorithmVisualizer:
         
         stats = [('Comparisons', comparisons, '#4299E1'),
                 ('Swaps', swaps, '#48BB78'),
-                ('Steps', self.current_step + 1, '#ECC94B')]
+                ('Inserts', inserts, '#ECC94B'),
+                ('Steps', self.current_step + 1, '#9F7AEA')]
         
         y_pos = 0.65
         for label, value, color in stats:
@@ -705,13 +795,17 @@ class AlgorithmVisualizer:
             'SEARCH_LIST_FOUND': 'Target element found in linked list!',
             'SEARCH_LIST_NOT_FOUND': 'Target not found after traversing entire list.',
             
-            'INSERT_BST': 'Inserting node in Binary Search Tree maintaining BST property.',
-            'SEARCH_BST': 'Searching in BST by comparing with current node.',
-            'SEARCH_BST_FOUND': 'Target found in Binary Search Tree!',
-            'SEARCH_BST_NOT_FOUND': 'Target not found in BST.',
+            'INSERT_BST_ROOT': 'Creating root node for Binary Search Tree.',
+            'INSERT_BST_COMPARE_LEFT': 'Value is smaller - moving to left subtree.',
+            'INSERT_BST_COMPARE_RIGHT': 'Value is larger - moving to right subtree.',
+            'INSERT_BST_DUPLICATE': 'Duplicate value - BST does not allow duplicates.',
+            'INSERT_BST_COMPLETE': 'Node inserted while maintaining BST property.',
+            
+            'DELETE_BST_EMPTY': 'Cannot delete from empty BST.',
             'DELETE_BST_SEARCH': 'Searching for node to delete in BST.',
-            'DELETE_BST_FOUND': 'Node found, proceeding with deletion.',
+            'DELETE_BST_FOUND': 'Node found - proceeding with deletion.',
             'DELETE_BST_COMPLETE': 'Node deleted and BST structure maintained.',
+            
             'INORDER_TRAVERSAL': 'Visiting BST nodes in sorted order (left-root-right).'
         }
         
@@ -841,8 +935,26 @@ insert(root, data):
     return createNode(data)
   if (data < root->data)
     root->left = insert(root->left, data)
-  else
+  else if (data > root->data)
     root->right = insert(root->right, data)
+  return root  // no duplicates
+
+delete(root, data):
+  if (root == NULL) return root
+  if (data < root->data)
+    root->left = delete(root->left, data)
+  else if (data > root->data)
+    root->right = delete(root->right, data)
+  else
+    // Node with one or no child
+    if (root->left == NULL)
+      return root->right
+    else if (root->right == NULL)
+      return root->left
+    // Node with two children
+    temp = findMin(root->right)
+    root->data = temp->data
+    root->right = delete(root->right, temp->data)
   return root'''
         }
         
@@ -934,22 +1046,21 @@ insert(root, data):
 
 def main():
     print("=" * 70)
-    print("🎨 ALGORITHM VISUALIZER v9.0 - SYNCED WITH C")
+    print("🎨 ALGORITHM VISUALIZER v10.0 - ENHANCED BST")
     print("=" * 70)
     print("✅ EXACT MATCH with C Implementation:")
     print("   • All action names synchronized")
     print("   • Highlight values (0-4) properly mapped")
-    print("   • Pointers displayed correctly")
-    print("   • Quick Sort partition steps shown")
-    print("   • Merge Sort divide/conquer visualized")
-    print("   • BST structure matches C traversal")
+    print("   • BST operations: Insert, Inorder, Delete")
+    print("   • Proper BST structure visualization")
+    print("   • Enhanced learning explanations")
     print("=" * 70)
     print("📊 Visualizations:")
-    print("   • Sorting â†' Bar Format")
-    print("   • Stack â†' Vertical (LIFO)")
-    print("   • Queue â†' Horizontal (FIFO)")
-    print("   • Linked List â†' Nodes with Arrows")
-    print("   • BST â†' Tree Structure")
+    print("   • Sorting → Bar Format")
+    print("   • Stack → Vertical (LIFO)")
+    print("   • Queue → Horizontal (FIFO)")
+    print("   • Linked List → Nodes with Arrows")
+    print("   • BST → Tree Structure (Proper Hierarchy)")
     print("=" * 70)
     
     if not os.path.exists('algorithm_steps.json'):

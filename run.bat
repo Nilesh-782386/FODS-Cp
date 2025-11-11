@@ -80,9 +80,10 @@ echo.
 echo 4. Queue - FIFO (3 Operations)
 echo    • Enqueue, Dequeue, Combined Demo
 echo.
-echo 5. Binary Search Tree (5 Operations)
-echo    • Insert, Search, Delete
-echo    • Inorder Traversal, Complete Demo
+echo 5. Binary Search Tree (3 Operations - PROPER BST)
+echo    • Insert Elements (Maintains BST Property)
+echo    • Inorder Traversal (Shows Sorted Order)
+echo    • Delete Element (Maintains BST Structure)
 echo.
 echo ============================================================
 echo.
@@ -159,6 +160,7 @@ echo   • Interactive Learning Mode
 echo   • Live Statistics Dashboard
 echo   • Professional Code Display
 echo   • Input Pattern Analysis
+echo   • PROPER BST STRUCTURE VISUALIZATION
 echo.
 echo Controls:
 echo   [Play/Pause] - Control animation

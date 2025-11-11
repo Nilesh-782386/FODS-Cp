@@ -1,0 +1,212 @@
+{
+  "steps": [
+    {
+      "step": 0,
+      "action": "INSERT_BST_ROOT",
+      "data": [50],
+      "highlighted": [1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Created root node with value 50",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 1,
+      "action": "INSERT_BST_COMPARE_LEFT",
+      "data": [50],
+      "highlighted": [1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 30 < 50 → Go LEFT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 2,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30],
+      "highlighted": [0, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 30 as LEFT child of 50",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 3,
+      "action": "INSERT_BST_COMPARE_RIGHT",
+      "data": [50, 30],
+      "highlighted": [1, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 70 > 50 → Go RIGHT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 4,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30, 70],
+      "highlighted": [0, 0, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 70 as RIGHT child of 50",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 5,
+      "action": "INSERT_BST_COMPARE_LEFT",
+      "data": [50, 30, 70],
+      "highlighted": [1, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 20 < 50 → Go LEFT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 6,
+      "action": "INSERT_BST_COMPARE_LEFT",
+      "data": [50, 30, 70],
+      "highlighted": [0, 1, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 20 < 30 → Go LEFT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 7,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30, 20, 70],
+      "highlighted": [0, 0, 2, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 20 as LEFT child of 30",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 8,
+      "action": "INSERT_BST_COMPARE_LEFT",
+      "data": [50, 30, 20, 70],
+      "highlighted": [1, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 40 < 50 → Go LEFT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 9,
+      "action": "INSERT_BST_COMPARE_RIGHT",
+      "data": [50, 30, 20, 70],
+      "highlighted": [0, 1, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 40 > 30 → Go RIGHT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 10,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30, 20, 40, 70],
+      "highlighted": [0, 0, 0, 2, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 40 as RIGHT child of 30",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 11,
+      "action": "INSERT_BST_COMPARE_RIGHT",
+      "data": [50, 30, 20, 40, 70],
+      "highlighted": [1, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 60 > 50 → Go RIGHT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 12,
+      "action": "INSERT_BST_COMPARE_LEFT",
+      "data": [50, 30, 20, 40, 70],
+      "highlighted": [0, 0, 0, 0, 1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 60 < 70 → Go LEFT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 13,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30, 20, 40, 70, 60],
+      "highlighted": [0, 0, 0, 0, 0, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 60 as LEFT child of 70",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 14,
+      "action": "INSERT_BST_COMPARE_RIGHT",
+      "data": [50, 30, 20, 40, 70, 60],
+      "highlighted": [1, 0, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 80 > 50 → Go RIGHT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 15,
+      "action": "INSERT_BST_COMPARE_RIGHT",
+      "data": [50, 30, 20, 40, 70, 60],
+      "highlighted": [0, 0, 0, 0, 1, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Comparing 80 > 70 → Go RIGHT",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 16,
+      "action": "INSERT_BST_COMPLETE",
+      "data": [50, 30, 20, 40, 70, 60, 80],
+      "highlighted": [0, 0, 0, 0, 0, 0, 2],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "✓ Inserted 80 as RIGHT child of 70",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 17,
+      "action": "DELETE_BST_SEARCH",
+      "data": [50, 30, 20, 40, 70, 60, 80],
+      "highlighted": [1, 0, 0, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Searching for 60 to delete, checking node 50",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 18,
+      "action": "DELETE_BST_SEARCH",
+      "data": [70, 60, 80],
+      "highlighted": [1, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Searching for 60 to delete, checking node 70",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 19,
+      "action": "DELETE_BST_SEARCH",
+      "data": [60],
+      "highlighted": [1],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Searching for 60 to delete, checking node 60",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 20,
+      "action": "DELETE_BST_FOUND",
+      "data": [60],
+      "highlighted": [3],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Node found - proceeding with deletion",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 21,
+      "action": "DELETE_BST_COMPLETE",
+      "data": [70, 80],
+      "highlighted": [0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Node deleted from BST",
+      "complexity": "O(log n)"
+    },
+    {
+      "step": 22,
+      "action": "DELETE_BST_COMPLETE",
+      "data": [50, 30, 20, 40, 70, 80],
+      "highlighted": [0, 0, 0, 0, 0, 0],
+      "pointers": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+      "description": "Node deleted from BST",
+      "complexity": "O(log n)"
+    }
+  ],
+  "total_steps": 23
+}

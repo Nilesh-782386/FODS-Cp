@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -110,14 +109,15 @@ void bubble_sort(int* arr, int size);
 void selection_sort(int* arr, int size);
 void insertion_sort(int* arr, int size);
 void quick_sort_wrapper(int* arr, int size);
-void quick_sort(int* arr, int low, int high);
-int partition(int* arr, int low, int high);
+void quick_sort(int* arr, int low, int high, int original_size);
+int partition(int* arr, int low, int high, int original_size);
 void merge_sort_wrapper(int* arr, int size);
-void merge_sort(int* arr, int left, int right);
-void merge(int* arr, int left, int mid, int right);
+void merge_sort(int* arr, int left, int right, int* original_arr, int original_size);
+void merge(int* arr, int left, int mid, int right, int* original_arr, int original_size);
 
 // Utility functions
 void swap(int* a, int* b);
+void copy_array(int* dest, int* src, int size);
 
 // Input validation functions implementation
 int validate_array_size(int size) {
@@ -277,6 +277,19 @@ void add_step(char* action, int* data, int size, int* highlighted, int* pointers
 void generate_random_array(int* arr, int size, int min, int max) {
     for (int i = 0; i < size; i++) {
         arr[i] = rand() % (max - min + 1) + min;
+    }
+}
+
+// Utility functions
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void copy_array(int* dest, int* src, int size) {
+    for (int i = 0; i < size; i++) {
+        dest[i] = src[i];
     }
 }
 
@@ -843,157 +856,260 @@ void insertion_sort(int* arr, int size) {
              "Insertion sort completed", "O(n^2)");
 }
 
+// QUICK SORT - EXACT ALGORITHM VISUALIZATION
 void quick_sort_wrapper(int* arr, int size) {
-    quick_sort(arr, 0, size - 1);
-    
+    // Record initial state
     int highlighted[MAX_SIZE] = {0};
+    add_step("QUICK_START", arr, size, highlighted, NULL, 
+             "Starting Quick Sort Algorithm", "O(n log n)");
+    
+    quick_sort(arr, 0, size - 1, size);
+    
+    // Record final state
     add_step("QUICK_COMPLETE", arr, size, highlighted, NULL, 
-             "Quick sort completed", "O(n log n)");
+             "Quick Sort Completed - Array is sorted", "O(n log n)");
 }
 
-void quick_sort(int* arr, int low, int high) {
+void quick_sort(int* arr, int low, int high, int original_size) {
     if (low < high) {
-        int pi = partition(arr, low, high);
+        // Show current subarray being processed
+        int subarray_highlight[MAX_SIZE] = {0};
+        for (int i = low; i <= high; i++) {
+            subarray_highlight[i] = 1;
+        }
+        char desc[200];
+        sprintf(desc, "Processing subarray from index %d to %d", low, high);
+        add_step("QUICK_SUBARRAY", arr, original_size, subarray_highlight, NULL, desc, "O(n log n)");
         
-        quick_sort(arr, low, pi - 1);
-        quick_sort(arr, pi + 1, high);
+        // Partition and get pivot index
+        int pi = partition(arr, low, high, original_size);
+        
+        // Show that pivot is now in correct position
+        int pivot_final_highlight[MAX_SIZE] = {0};
+        pivot_final_highlight[pi] = 3;
+        sprintf(desc, "Pivot %d is now in its final position at index %d", arr[pi], pi);
+        add_step("QUICK_PIVOT_FINAL", arr, original_size, pivot_final_highlight, NULL, desc, "O(n log n)");
+        
+        // Recursively sort elements before and after partition
+        sprintf(desc, "Recursively sorting left subarray [%d-%d]", low, pi-1);
+        add_step("QUICK_RECURSIVE_LEFT", arr, original_size, subarray_highlight, NULL, desc, "O(n log n)");
+        quick_sort(arr, low, pi - 1, original_size);
+        
+        sprintf(desc, "Recursively sorting right subarray [%d-%d]", pi+1, high);
+        add_step("QUICK_RECURSIVE_RIGHT", arr, original_size, subarray_highlight, NULL, desc, "O(n log n)");
+        quick_sort(arr, pi + 1, high, original_size);
     }
 }
 
-int partition(int* arr, int low, int high) {
-    int pivot = arr[high];
-    int i = low - 1;
+int partition(int* arr, int low, int high, int original_size) {
+    int pivot = arr[high];  // Choose last element as pivot
+    int i = low - 1;       // Index of smaller element
     
-    int highlighted[MAX_SIZE] = {0};
-    highlighted[high] = 3;
-    
+    // Highlight pivot selection
+    int pivot_select_highlight[MAX_SIZE] = {0};
+    pivot_select_highlight[high] = 3;
     char desc[200];
-    sprintf(desc, "Partitioning with pivot %d", pivot);
-    add_step("QUICK_PARTITION", arr, high + 1, highlighted, NULL, desc, "O(n log n)");
+    sprintf(desc, "Selected pivot: %d at index %d", pivot, high);
+    add_step("QUICK_PIVOT_SELECT", arr, original_size, pivot_select_highlight, NULL, desc, "O(n log n)");
     
     for (int j = low; j <= high - 1; j++) {
-        memset(highlighted, 0, sizeof(highlighted));
-        highlighted[high] = 3;
-        highlighted[j] = 1;
-        if (i >= 0) highlighted[i] = 2;
+        // Show current element being compared with pivot
+        int compare_highlight[MAX_SIZE] = {0};
+        compare_highlight[high] = 3;  // Pivot
+        compare_highlight[j] = 1;     // Current element
+        if (i >= low) compare_highlight[i] = 2;  // Partition boundary
         
         sprintf(desc, "Comparing %d with pivot %d", arr[j], pivot);
-        add_step("QUICK_COMPARE", arr, high + 1, highlighted, NULL, desc, "O(n log n)");
+        add_step("QUICK_COMPARE", arr, original_size, compare_highlight, NULL, desc, "O(n log n)");
         
         if (arr[j] < pivot) {
             i++;
-            swap(&arr[i], &arr[j]);
             
-            highlighted[i] = 2;
-            highlighted[j] = 2;
-            add_step("QUICK_SWAP", arr, high + 1, highlighted, NULL, 
-                     "Elements swapped", "O(n log n)");
+            // Show elements being swapped
+            if (i != j) {
+                int swap_highlight[MAX_SIZE] = {0};
+                swap_highlight[i] = 2;
+                swap_highlight[j] = 2;
+                swap_highlight[high] = 3;
+                
+                sprintf(desc, "Swapping %d and %d", arr[i], arr[j]);
+                add_step("QUICK_SWAP_BEFORE", arr, original_size, swap_highlight, NULL, desc, "O(n log n)");
+                
+                swap(&arr[i], &arr[j]);
+                
+                add_step("QUICK_SWAP_AFTER", arr, original_size, swap_highlight, NULL, 
+                         "Elements swapped", "O(n log n)");
+            }
         }
     }
     
+    // Place pivot in correct position
+    int final_swap_highlight[MAX_SIZE] = {0};
+    final_swap_highlight[i+1] = 2;
+    final_swap_highlight[high] = 2;
+    final_swap_highlight[high] = 3;
+    
+    sprintf(desc, "Placing pivot in final position: swapping %d and %d", arr[i+1], arr[high]);
+    add_step("QUICK_PIVOT_PLACE_BEFORE", arr, original_size, final_swap_highlight, NULL, desc, "O(n log n)");
+    
     swap(&arr[i + 1], &arr[high]);
     
-    memset(highlighted, 0, sizeof(highlighted));
-    highlighted[i + 1] = 3;
-    add_step("QUICK_PIVOT_PLACE", arr, high + 1, highlighted, NULL, 
+    add_step("QUICK_PIVOT_PLACE_AFTER", arr, original_size, final_swap_highlight, NULL, 
              "Pivot placed in correct position", "O(n log n)");
     
     return i + 1;
 }
 
-// Merge Sort functions
+// MERGE SORT - EXACT ALGORITHM VISUALIZATION
 void merge_sort_wrapper(int* arr, int size) {
-    int temp[MAX_SIZE];
-    memcpy(temp, arr, size * sizeof(int));
-    merge_sort(temp, 0, size - 1);
-    memcpy(arr, temp, size * sizeof(int));
-    
+    // Record initial state
     int highlighted[MAX_SIZE] = {0};
+    add_step("MERGE_START", arr, size, highlighted, NULL, 
+             "Starting Merge Sort Algorithm", "O(n log n)");
+    
+    // Create a working copy
+    int temp[MAX_SIZE];
+    copy_array(temp, arr, size);
+    
+    merge_sort(temp, 0, size - 1, arr, size);
+    
+    // Copy back sorted array
+    copy_array(arr, temp, size);
+    
+    // Record final state
     add_step("MERGE_COMPLETE", arr, size, highlighted, NULL, 
-             "Merge sort completed", "O(n log n)");
+             "Merge Sort Completed - Array is sorted", "O(n log n)");
 }
 
-void merge_sort(int* arr, int left, int right) {
+void merge_sort(int* arr, int left, int right, int* original_arr, int original_size) {
     if (left < right) {
         int mid = left + (right - left) / 2;
         
-        // Visualize division
-        int highlighted[MAX_SIZE] = {0};
-        for (int i = left; i <= right; i++) {
-            highlighted[i] = 1;
-        }
+        // Show division into two halves
+        int left_half_highlight[MAX_SIZE] = {0};
+        for (int i = left; i <= mid; i++) left_half_highlight[i] = 1;
         char desc[200];
-        sprintf(desc, "Dividing array from index %d to %d", left, right);
-        add_step("MERGE_DIVIDE", arr, right + 1, highlighted, NULL, desc, "O(n log n)");
+        sprintf(desc, "Dividing: Left half [%d-%d]", left, mid);
+        add_step("MERGE_DIVIDE_LEFT", original_arr, original_size, left_half_highlight, NULL, desc, "O(n log n)");
         
-        merge_sort(arr, left, mid);
-        merge_sort(arr, mid + 1, right);
-        merge(arr, left, mid, right);
+        // Sort left half
+        merge_sort(arr, left, mid, original_arr, original_size);
+        
+        // Show right half
+        int right_half_highlight[MAX_SIZE] = {0};
+        for (int i = mid + 1; i <= right; i++) right_half_highlight[i] = 2;
+        sprintf(desc, "Dividing: Right half [%d-%d]", mid+1, right);
+        add_step("MERGE_DIVIDE_RIGHT", original_arr, original_size, right_half_highlight, NULL, desc, "O(n log n)");
+        
+        // Sort right half
+        merge_sort(arr, mid + 1, right, original_arr, original_size);
+        
+        // Show that both halves are sorted and ready to merge
+        int both_halves_highlight[MAX_SIZE] = {0};
+        for (int i = left; i <= mid; i++) both_halves_highlight[i] = 1;
+        for (int i = mid + 1; i <= right; i++) both_halves_highlight[i] = 2;
+        sprintf(desc, "Both halves sorted, ready to merge [%d-%d] and [%d-%d]", left, mid, mid+1, right);
+        add_step("MERGE_READY", original_arr, original_size, both_halves_highlight, NULL, desc, "O(n log n)");
+        
+        // Merge the sorted halves
+        merge(arr, left, mid, right, original_arr, original_size);
     }
 }
 
-void merge(int* arr, int left, int mid, int right) {
+void merge(int* arr, int left, int mid, int right, int* original_arr, int original_size) {
     int i, j, k;
     int n1 = mid - left + 1;
     int n2 = right - mid;
     
-    int L[n1], R[n2];
+    // Create temporary arrays for left and right halves
+    int left_arr[n1], right_arr[n2];
     
+    // Copy data to temporary arrays
     for (i = 0; i < n1; i++)
-        L[i] = arr[left + i];
+        left_arr[i] = arr[left + i];
     for (j = 0; j < n2; j++)
-        R[j] = arr[mid + 1 + j];
+        right_arr[j] = arr[mid + 1 + j];
     
-    // Visualize merging
-    int highlighted[MAX_SIZE] = {0};
-    for (int i = left; i <= right; i++) {
-        highlighted[i] = 2;
-    }
+    // Show the two sorted subarrays that will be merged
+    int merge_start_highlight[MAX_SIZE] = {0};
+    for (int i = left; i <= mid; i++) merge_start_highlight[i] = 1;
+    for (int i = mid + 1; i <= right; i++) merge_start_highlight[i] = 2;
     char desc[200];
-    sprintf(desc, "Merging subarrays from %d-%d and %d-%d", left, mid, mid+1, right);
-    add_step("MERGE_MERGE", arr, right + 1, highlighted, NULL, desc, "O(n log n)");
+    sprintf(desc, "Merging two sorted subarrays: Left[%d-%d] and Right[%d-%d]", left, mid, mid+1, right);
+    add_step("MERGE_START", original_arr, original_size, merge_start_highlight, NULL, desc, "O(n log n)");
     
-    i = 0;
-    j = 0;
-    k = left;
+    // Merge the temporary arrays back into arr[left..right]
+    i = 0;  // Initial index of first subarray
+    j = 0;  // Initial index of second subarray
+    k = left;  // Initial index of merged subarray
     
     while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
+        // Show comparison between current elements of both subarrays
+        int compare_highlight[MAX_SIZE] = {0};
+        compare_highlight[left + i] = 1;  // Current element from left subarray
+        compare_highlight[mid + 1 + j] = 2;  // Current element from right subarray
+        
+        sprintf(desc, "Comparing %d (left) and %d (right)", left_arr[i], right_arr[j]);
+        add_step("MERGE_COMPARE", original_arr, original_size, compare_highlight, NULL, desc, "O(n log n)");
+        
+        if (left_arr[i] <= right_arr[j]) {
+            arr[k] = left_arr[i];
+            
+            int place_highlight[MAX_SIZE] = {0};
+            place_highlight[k] = 3;
+            sprintf(desc, "Taking %d from left subarray", left_arr[i]);
+            add_step("MERGE_TAKE_LEFT", original_arr, original_size, place_highlight, NULL, desc, "O(n log n)");
+            
             i++;
         } else {
-            arr[k] = R[j];
+            arr[k] = right_arr[j];
+            
+            int place_highlight[MAX_SIZE] = {0};
+            place_highlight[k] = 3;
+            sprintf(desc, "Taking %d from right subarray", right_arr[j]);
+            add_step("MERGE_TAKE_RIGHT", original_arr, original_size, place_highlight, NULL, desc, "O(n log n)");
+            
             j++;
         }
+        
+        // Update original array for visualization
+        original_arr[k] = arr[k];
         k++;
     }
     
+    // Copy remaining elements of left_arr[] if any
     while (i < n1) {
-        arr[k] = L[i];
+        arr[k] = left_arr[i];
+        original_arr[k] = arr[k];
+        
+        int place_highlight[MAX_SIZE] = {0};
+        place_highlight[k] = 3;
+        sprintf(desc, "Copying remaining element %d from left subarray", left_arr[i]);
+        add_step("MERGE_COPY_LEFT", original_arr, original_size, place_highlight, NULL, desc, "O(n log n)");
+        
         i++;
         k++;
     }
     
+    // Copy remaining elements of right_arr[] if any
     while (j < n2) {
-        arr[k] = R[j];
+        arr[k] = right_arr[j];
+        original_arr[k] = arr[k];
+        
+        int place_highlight[MAX_SIZE] = {0};
+        place_highlight[k] = 3;
+        sprintf(desc, "Copying remaining element %d from right subarray", right_arr[j]);
+        add_step("MERGE_COPY_RIGHT", original_arr, original_size, place_highlight, NULL, desc, "O(n log n)");
+        
         j++;
         k++;
     }
     
-    // Visualize merged result
-    memset(highlighted, 0, sizeof(highlighted));
-    for (int i = left; i <= right; i++) {
-        highlighted[i] = 3;
-    }
-    sprintf(desc, "Subarray from %d to %d merged", left, right);
-    add_step("MERGE_COMPLETE_SUB", arr, right + 1, highlighted, NULL, desc, "O(n log n)");
-}
-
-// Utility functions
-void swap(int* a, int* b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+    // Show merged result
+    int merged_highlight[MAX_SIZE] = {0};
+    for (int i = left; i <= right; i++) merged_highlight[i] = 4;
+    sprintf(desc, "Subarray [%d-%d] successfully merged and sorted", left, right);
+    add_step("MERGE_COMPLETE_SUB", original_arr, original_size, merged_highlight, NULL, desc, "O(n log n)");
 }
 
 // Write JSON output
@@ -1208,14 +1324,22 @@ int main() {
                     return result;
                 }
             } else if (sub_choice == 2) {
+                // Sort array first for binary search
+                int temp[MAX_SIZE];
+                memcpy(temp, arr, size * sizeof(int));
                 for (int i = 0; i < size - 1; i++) {
                     for (int j = 0; j < size - i - 1; j++) {
-                        if (arr[j] > arr[j + 1]) {
-                            swap(&arr[j], &arr[j + 1]);
+                        if (temp[j] > temp[j + 1]) {
+                            swap(&temp[j], &temp[j + 1]);
                         }
                     }
                 }
-                printf("Array sorted for binary search.\n");
+                memcpy(arr, temp, size * sizeof(int));
+                printf("Array sorted for binary search: ");
+                for (int i = 0; i < size; i++) {
+                    printf("%d ", arr[i]);
+                }
+                printf("\n");
                 
                 int target;
                 result = safe_input_int("Enter target to search: ", &target, INT_MIN/2, INT_MAX/2);
@@ -1282,26 +1406,45 @@ int main() {
             printf("3. Add Elements Sequentially\n");
             printf("4. Search Element\n");
             printf("5. Multiple Operations Demo\n");
-            printf("\nEnter your choice (1-5): ");
-            scanf("%d", &sub_choice);
+            printf("\n");
+            
+            result = safe_input_int("Enter your choice (1-5): ", &sub_choice, 1, 5);
+            if (result != SUCCESS) {
+                printf("Exiting due to input error.\n");
+                cleanup_memory();
+                return ERROR_INVALID_INPUT;
+            }
             
             if (sub_choice == 1) {
                 int data;
-                printf("Enter data to insert: ");
-                scanf("%d", &data);
+                result = safe_input_int("Enter data to insert: ", &data, INT_MIN/2, INT_MAX/2);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 insert_at_beginning(data);
                 write_config("linked_list", "insert_beginning");
             } else if (sub_choice == 2) {
                 int data;
-                printf("Enter data to insert: ");
-                scanf("%d", &data);
+                result = safe_input_int("Enter data to insert: ", &data, INT_MIN/2, INT_MAX/2);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 insert_at_end(data);
                 write_config("linked_list", "insert_end");
             } else if (sub_choice == 3) {
-                int n, data;
-                printf("How many elements to add? ");
-                scanf("%d", &n);
+                int n;
+                result = safe_input_int("How many elements to add? ", &n, 1, 10);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n; i++) {
+                    int data;
                     printf("Enter element %d: ", i + 1);
                     scanf("%d", &data);
                     insert_sequential(data);
@@ -1315,8 +1458,12 @@ int main() {
                 insert_at_beginning(10);
                 
                 int target;
-                printf("Enter element to search: ");
-                scanf("%d", &target);
+                result = safe_input_int("Enter element to search: ", &target, INT_MIN/2, INT_MAX/2);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 search_linked_list(target);
                 write_config("linked_list", "search");
             } else if (sub_choice == 5) {
@@ -1337,14 +1484,25 @@ int main() {
             printf("1. Push Elements\n");
             printf("2. Pop Elements\n");
             printf("3. Push and Pop Demo\n");
-            printf("\nEnter your choice (1-3): ");
-            scanf("%d", &sub_choice);
+            printf("\n");
+            
+            result = safe_input_int("Enter your choice (1-3): ", &sub_choice, 1, 3);
+            if (result != SUCCESS) {
+                printf("Exiting due to input error.\n");
+                cleanup_memory();
+                return ERROR_INVALID_INPUT;
+            }
             
             if (sub_choice == 1) {
-                int n, data;
-                printf("How many elements to push? ");
-                scanf("%d", &n);
+                int n;
+                result = safe_input_int("How many elements to push? ", &n, 1, 10);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n; i++) {
+                    int data;
                     printf("Enter element %d: ", i + 1);
                     scanf("%d", &data);
                     push(data);
@@ -1357,8 +1515,12 @@ int main() {
                 push(30);
                 
                 int n;
-                printf("How many elements to pop? ");
-                scanf("%d", &n);
+                result = safe_input_int("How many elements to pop? ", &n, 1, 3);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n && stack.top >= 0; i++) {
                     pop();
                 }
@@ -1382,14 +1544,25 @@ int main() {
             printf("1. Enqueue Elements\n");
             printf("2. Dequeue Elements\n");
             printf("3. Enqueue and Dequeue Demo\n");
-            printf("\nEnter your choice (1-3): ");
-            scanf("%d", &sub_choice);
+            printf("\n");
+            
+            result = safe_input_int("Enter your choice (1-3): ", &sub_choice, 1, 3);
+            if (result != SUCCESS) {
+                printf("Exiting due to input error.\n");
+                cleanup_memory();
+                return ERROR_INVALID_INPUT;
+            }
             
             if (sub_choice == 1) {
-                int n, data;
-                printf("How many elements to enqueue? ");
-                scanf("%d", &n);
+                int n;
+                result = safe_input_int("How many elements to enqueue? ", &n, 1, 10);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n; i++) {
+                    int data;
                     printf("Enter element %d: ", i + 1);
                     scanf("%d", &data);
                     enqueue(data);
@@ -1402,8 +1575,12 @@ int main() {
                 enqueue(30);
                 
                 int n;
-                printf("How many elements to dequeue? ");
-                scanf("%d", &n);
+                result = safe_input_int("How many elements to dequeue? ", &n, 1, 3);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n && queue.front <= queue.rear && queue.front != -1; i++) {
                     dequeue();
                 }
@@ -1429,14 +1606,25 @@ int main() {
             printf("3. Delete Element\n");
             printf("4. Inorder Traversal\n");
             printf("5. Complete BST Demo\n");
-            printf("\nEnter your choice (1-5): ");
-            scanf("%d", &sub_choice);
+            printf("\n");
+            
+            result = safe_input_int("Enter your choice (1-5): ", &sub_choice, 1, 5);
+            if (result != SUCCESS) {
+                printf("Exiting due to input error.\n");
+                cleanup_memory();
+                return ERROR_INVALID_INPUT;
+            }
             
             if (sub_choice == 1) {
-                int n, data;
-                printf("How many elements to insert in BST? ");
-                scanf("%d", &n);
+                int n;
+                result = safe_input_int("How many elements to insert in BST? ", &n, 1, 10);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 for (int i = 0; i < n; i++) {
+                    int data;
                     printf("Enter element %d: ", i + 1);
                     scanf("%d", &data);
                     root = insert_bst(root, data);
@@ -1453,8 +1641,12 @@ int main() {
                 root = insert_bst(root, 80);
                 
                 int target;
-                printf("Enter element to search in BST: ");
-                scanf("%d", &target);
+                result = safe_input_int("Enter element to search in BST: ", &target, INT_MIN/2, INT_MAX/2);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 search_bst(root, target);
                 write_config("binary_search_tree", "search");
             } else if (sub_choice == 3) {
@@ -1467,8 +1659,12 @@ int main() {
                 root = insert_bst(root, 60);
                 root = insert_bst(root, 80);
                 int target;
-                printf("Enter element to delete from BST: ");
-                scanf("%d", &target);
+                result = safe_input_int("Enter element to delete from BST: ", &target, INT_MIN/2, INT_MAX/2);
+                if (result != SUCCESS) {
+                    printf("Exiting due to input error.\n");
+                    cleanup_memory();
+                    return ERROR_INVALID_INPUT;
+                }
                 root = delete_bst(root, target);
                 write_config("binary_search_tree", "delete");
             } else if (sub_choice == 4) {
@@ -1528,11 +1724,6 @@ int main() {
     printf("  📄 algorithm_steps.json - Visualization data\n");
     printf("  ⚙️  algorithm_config.json - Configuration\n");
     printf("\nTotal Steps Generated: %d\n", step_count);
-    printf("\nNew Features in v5.1:\n");
-    printf("  • Enhanced input validation\n");
-    printf("  • Memory leak fixes\n");
-    printf("  • Better error messages\n");
-    printf("  • Improved error handling\n");
     printf("\nReady for visualization!\n");
     printf("=================================================\n");
     
